@@ -1,0 +1,81 @@
+<div class="details-dialog">
+  <header class="dialog-header">
+    <div>
+      <p class="eyebrow">تفاصيل الصنف</p>
+      <h2 mat-dialog-title>{{ data.details.productName }}</h2>
+      <p class="barcode mono">{{ data.details.barcode }}</p>
+    </div>
+    <button type="button" class="close-btn" mat-dialog-close aria-label="إغلاق">×</button>
+  </header>
+
+  <mat-dialog-content>
+    <div class="summary-grid">
+      <article class="summary-card">
+        <span>إجمالي الكمية</span>
+        <strong>{{ data.details.totalQuantity }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>قيمة المخزون</span>
+        <strong>{{ data.details.inventoryValue | number:'1.2-2' }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>دفعات الشراء</span>
+        <strong>{{ data.details.purchaseLineCount }}</strong>
+      </article>
+      <article class="summary-card">
+        <span>الموردون</span>
+        <strong>{{ data.details.supplierCount }}</strong>
+      </article>
+    </div>
+
+    @if (supplierSummary.length > 0) {
+      <section class="supplier-breakdown">
+        <h3>ملخص حسب المورد</h3>
+        <div class="chip-row">
+          @for (item of supplierSummary; track item.supplier) {
+            <div class="supplier-chip">
+              <span class="chip-title">{{ item.supplier }}</span>
+              <span>{{ item.qty }} وحدة · {{ item.value | number:'1.2-2' }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="lines-section">
+      <h3>كل دفعات الشراء (السعر × الكمية)</h3>
+      <div class="lines-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>المورد</th>
+              <th>سعر الشراء</th>
+              <th>سعر البيع</th>
+              <th>الكمية</th>
+              <th>المتبقي</th>
+              <th>القيمة</th>
+              <th>الفئة</th>
+              <th>التاريخ</th>
+              <th>ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of data.details.lines; track line.id) {
+              <tr>
+                <td><span class="supplier-pill">{{ line.supplier }}</span></td>
+                <td>{{ line.purchasePrice | currency:'EGP':'symbol':'1.2-2' }}</td>
+                <td>{{ line.sellingPrice | currency:'EGP':'symbol':'1.2-2' }}</td>
+                <td>{{ line.quantity }}</td>
+                <td class="emph">{{ line.remainingQuantity }}</td>
+                <td>{{ lineValue(line.remainingQuantity, line.purchasePrice) | number:'1.2-2' }}</td>
+                <td>{{ line.category }}</td>
+                <td>{{ line.purchaseDate | date:'dd/MM/yyyy' }}</td>
+                <td class="notes">{{ line.notes || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </mat-dialog-content>
+</div>

@@ -1,0 +1,110 @@
+<section class="page-header panel-card">
+  <h1>فواتير المبيعات</h1>
+  <p>استعرض كل ما بعتَه مع تفاصيل الأصناف — وفلتر حسب التاريخ</p>
+</section>
+
+<div class="stats-row">
+  <article class="stat-card panel-card">
+    <span>إجمالي الصفحة</span>
+    <strong>{{ summary().totalSales | number:'1.2-2' }} ج.م</strong>
+  </article>
+  <article class="stat-card panel-card">
+    <span>عدد الفواتير</span>
+    <strong>{{ totalCount() }}</strong>
+  </article>
+  <article class="stat-card panel-card">
+    <span>الوحدات المباعة</span>
+    <strong>{{ summary().itemsSold }}</strong>
+  </article>
+</div>
+
+<section class="panel-card">
+  <form [formGroup]="filtersForm" class="filters" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>من تاريخ</mat-label>
+      <input matInput [matDatepicker]="fromPicker" formControlName="dateFrom" />
+      <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+      <mat-datepicker #fromPicker></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>إلى تاريخ</mat-label>
+      <input matInput [matDatepicker]="toPicker" formControlName="dateTo" />
+      <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+      <mat-datepicker #toPicker></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>رقم الفاتورة</mat-label>
+      <input matInput formControlName="invoiceNumber" placeholder="INV-000001" />
+    </mat-form-field>
+    <div class="filter-actions">
+      <button class="btn-primary" type="submit">بحث</button>
+      <button class="btn-secondary" type="button" (click)="resetFilters()">إعادة تعيين</button>
+    </div>
+  </form>
+
+  @if (loading()) {
+    @for (i of [1,2,3,4]; track i) {
+      <div class="skeleton invoice-skeleton"></div>
+    }
+  } @else if (invoices().length === 0) {
+    <div class="empty-state">لا توجد فواتير في هذه الفترة</div>
+  } @else {
+    <div class="invoice-list">
+      @for (inv of invoices(); track inv.id) {
+        <article class="invoice-card" [class.expanded]="expandedId() === inv.id">
+          <button type="button" class="invoice-head" (click)="toggleExpand(inv.id)">
+            <div class="invoice-meta">
+              <span class="inv-number">{{ inv.invoiceNumber }}</span>
+              <span class="inv-date">{{ inv.saleDate | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="invoice-summary">
+              <span class="item-count">{{ inv.itemCount }} أصناف</span>
+              <strong>{{ inv.grandTotal | number:'1.2-2' }} ج.م</strong>
+              <span class="chevron">{{ expandedId() === inv.id ? '▲' : '▼' }}</span>
+            </div>
+          </button>
+
+          @if (expandedId() === inv.id) {
+            <div class="invoice-body">
+              <div class="totals-mini">
+                <span>المجموع: {{ inv.subtotal | number:'1.2-2' }}</span>
+                <span>خصم: {{ inv.discount | number:'1.2-2' }}</span>
+                <span>ضريبة: {{ inv.tax | number:'1.2-2' }}</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>الصنف</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                    <th>ملاحظات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (line of inv.items; track line.productName + line.unitPrice) {
+                    <tr>
+                      <td>{{ line.productName }}</td>
+                      <td>{{ line.quantity }}</td>
+                      <td>{{ line.unitPrice | number:'1.2-2' }}</td>
+                      <td class="amount">{{ line.lineTotal | number:'1.2-2' }}</td>
+                      <td class="muted">{{ line.notes || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  }
+
+  <footer class="pagination">
+    <span>صفحة {{ pageNumber }} من {{ totalPages }}</span>
+    <div>
+      <button class="btn-secondary" type="button" [disabled]="pageNumber <= 1" (click)="previousPage()">السابق</button>
+      <button class="btn-secondary" type="button" [disabled]="pageNumber >= totalPages" (click)="nextPage()">التالي</button>
+    </div>
+  </footer>
+</section>

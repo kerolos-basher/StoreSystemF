@@ -1,0 +1,48 @@
+.page-card { max-width: 720px; margin: 0 auto; }
+
+.page-header h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
+.page-header p { margin: 0 0 1rem; color: var(--text-muted); }
+
+.manual-row {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.manual-row input {
+  flex: 1;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+}
+
+.result-card {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #EFF6FF, #ECFDF5);
+  border: 1px solid var(--border-color);
+}
+
+.result-card h2 { margin: 0 0 1rem; }
+
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.result-grid span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.result-grid strong {
+  font-size: 1.35rem;
+  color: var(--primary);
+}
+
+.skeleton-card { min-height: 100px; }
+.animate-in { animation: fadeIn 0.35s ease; }

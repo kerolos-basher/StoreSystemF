@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>رمز QR — {{ data.productName }}</h2>
+<mat-dialog-content class="qr-content">
+  <img [src]="imageSrc" alt="QR Code" class="qr-image" />
+  <p class="barcode">{{ data.qr.barcode }}</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="downloadImage()">تحميل الصورة</button>
+  <button mat-button type="button" (click)="exportPdf()">تصدير PDF</button>
+  <button mat-button type="button" (click)="print()">طباعة</button>
+  <button mat-raised-button color="primary" type="button" (click)="close()">إغلاق</button>
+</mat-dialog-actions>

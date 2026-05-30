@@ -1,0 +1,30 @@
+<section class="panel-card page-card">
+  <header class="page-header">
+    <h1>فحص السعر</h1>
+    <p>امسح رمز QR أو أدخل الباركود يدوياً</p>
+  </header>
+
+  <app-barcode-scanner (scanned)="onScan($event)" />
+
+  <div class="manual-row">
+    <input type="text" placeholder="أدخل الباركود..." [value]="manualBarcode()" (input)="manualBarcode.set(($any($event.target)).value)" />
+    <button class="btn-primary" type="button" (click)="lookupManual()">بحث</button>
+  </div>
+
+  @if (loading()) {
+    <div class="result-card skeleton-card">
+      <div class="skeleton" style="height:24px;width:60%;margin-bottom:12px"></div>
+      <div class="skeleton" style="height:18px;width:40%"></div>
+    </div>
+  } @else if (result()) {
+    <article class="result-card animate-in">
+      <h2>{{ result()!.productName }}</h2>
+      <div class="result-grid">
+        <div><span>السعر</span><strong>{{ result()!.sellingPrice | number:'1.2-2' }} ج.م</strong></div>
+        <div><span>الكمية المتاحة</span><strong>{{ result()!.availableQuantity }}</strong></div>
+      </div>
+    </article>
+  } @else {
+    <div class="empty-state">لم يتم العثور على منتج بعد — امسح الرمز للبدء</div>
+  }
+</section>
