@@ -8,4 +8,65 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="FEProject\public\favicon.ico" />
+    <Content Include="FEProject\src\app\app.component.html" />
+    <Content Include="FEProject\src\app\features\price-scanner\price-scanner-page.component.html" />
+    <Content Include="FEProject\src\app\features\product-entry\product-entry-page.component.html" />
+    <Content Include="FEProject\src\app\features\products-view\product-details-dialog.component.html" />
+    <Content Include="FEProject\src\app\features\products-view\products-view-page.component.html" />
+    <Content Include="FEProject\src\app\features\products-view\purchase-history-dialog.component.html" />
+    <Content Include="FEProject\src\app\features\sales-invoices\sales-invoices-page.component.html" />
+    <Content Include="FEProject\src\app\features\sales\sales-page.component.html" />
+    <Content Include="FEProject\src\app\shared\components\generic-modal\generic-modal.component.html" />
+    <Content Include="FEProject\src\app\shared\components\generic-table\generic-table.component.html" />
+    <Content Include="FEProject\src\app\shared\components\qr-code-dialog\qr-code-dialog.component.html" />
+    <Content Include="FEProject\src\index.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="FEProject\.editorconfig" />
+    <None Include="FEProject\README.md" />
+    <None Include="FEProject\src\app\app.component.scss" />
+    <None Include="FEProject\src\app\features\price-scanner\price-scanner-page.component.scss" />
+    <None Include="FEProject\src\app\features\product-entry\product-entry-page.component.scss" />
+    <None Include="FEProject\src\app\features\products-view\product-details-dialog.component.scss" />
+    <None Include="FEProject\src\app\features\products-view\products-view-page.component.scss" />
+    <None Include="FEProject\src\app\features\sales-invoices\sales-invoices-page.component.scss" />
+    <None Include="FEProject\src\app\features\sales\sales-page.component.scss" />
+    <None Include="FEProject\src\app\shared\components\qr-code-dialog\qr-code-dialog.component.scss" />
+    <None Include="FEProject\src\styles.scss" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="FEProject\src\app\app.component.spec.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\app.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\app.config.server.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\app.config.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\app.routes.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\core\interceptors\loading.interceptor.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\core\services\inventory-api.service.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\core\services\language.service.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\core\services\loading.service.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\core\stores\inventory.store.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\core\stores\sales.store.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\features\price-scanner\price-scanner-page.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\features\product-entry\product-entry-page.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\features\products-view\product-details-dialog.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\features\products-view\products-view-page.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\features\products-view\purchase-history-dialog.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\features\sales-invoices\sales-invoices-page.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\features\sales\sales-page.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\shared\components\barcode-scanner\barcode-scanner.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\shared\components\generic-modal\generic-modal.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\shared\components\generic-table\generic-table.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\shared\components\qr-code-dialog\qr-code-dialog.component.ts" />
+    <TypeScriptCompile Include="FEProject\src\app\shared\models\inventory.models.ts" />
+    <TypeScriptCompile Include="FEProject\src\environments\environment.development.ts" />
+    <TypeScriptCompile Include="FEProject\src\environments\environment.ts" />
+    <TypeScriptCompile Include="FEProject\src\main.server.ts" />
+    <TypeScriptCompile Include="FEProject\src\main.ts" />
+    <TypeScriptCompile Include="FEProject\src\server.ts" />
+  </ItemGroup>
+
 </Project>
