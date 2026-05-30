@@ -1,7 +1,7 @@
 namespace Application.Sales.Dtos;
 
 public sealed record CreateSaleResultDto(
-    string InvoiceId,
+    long InvoiceId,
     string InvoiceNumber,
     decimal GrandTotal);
 
@@ -11,7 +11,7 @@ public sealed record SaleLineRequestDto(
     string Notes);
 
 public sealed record SalesInvoiceDto(
-    string Id,
+    long Id,
     string InvoiceNumber,
     DateTime SaleDate,
     decimal Subtotal,
@@ -29,7 +29,7 @@ public sealed record SalesInvoiceItemDto(
     string Notes);
 
 public sealed record SalesInvoiceListItemDto(
-    string Id,
+    long Id,
     string InvoiceNumber,
     DateTime SaleDate,
     decimal Subtotal,

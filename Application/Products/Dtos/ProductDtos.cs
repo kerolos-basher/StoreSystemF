@@ -1,9 +1,9 @@
 namespace Application.Products.Dtos;
 
-public sealed record CreatePurchaseEntryResultDto(string ProductId);
+public sealed record CreatePurchaseEntryResultDto(long ProductId);
 
 public sealed record ProductListItemDto(
-    string Id,
+    long Id,
     string ProductName,
     string Barcode,
     int CurrentQuantity,
@@ -16,7 +16,7 @@ public sealed record ProductListItemDto(
     int SupplierCount);
 
 public sealed record ProductDetailLineDto(
-    string Id,
+    long Id,
     string Supplier,
     string Category,
     decimal PurchasePrice,
@@ -27,7 +27,7 @@ public sealed record ProductDetailLineDto(
     string Notes);
 
 public sealed record ProductDetailsDto(
-    string Id,
+    long Id,
     string ProductName,
     string Barcode,
     int TotalQuantity,
@@ -49,12 +49,12 @@ public sealed record ProductStatisticsDto(
     int LowStockCount,
     decimal InventoryValue);
 
-public sealed record CategoryLookupDto(string Id, string Name);
+public sealed record CategoryLookupDto(long Id, string Name);
 
-public sealed record SupplierLookupDto(string Id, string Name);
+public sealed record SupplierLookupDto(long Id, string Name);
 
 public sealed record ProductByBarcodeDto(
-    string Id,
+    long Id,
     string ProductName,
     string Barcode,
     decimal SellingPrice,

@@ -44,7 +44,7 @@ public sealed class SearchSalesInvoicesQueryHandler(IApplicationDbContext contex
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .Select(x => new SalesInvoiceListItemDto(
-                x.Id.ToString(),
+                x.Id,
                 x.InvoiceNumber,
                 x.SaleDate,
                 x.Subtotal,

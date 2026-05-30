@@ -17,7 +17,7 @@ public sealed class GetSalesInvoiceQueryHandler(IApplicationDbContext context)
             ?? throw new Exception("الفاتورة غير موجودة.");
 
         return new SalesInvoiceDto(
-            invoice.Id.ToString(),
+            invoice.Id,
             invoice.InvoiceNumber,
             invoice.SaleDate,
             invoice.Subtotal,

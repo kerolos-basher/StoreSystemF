@@ -71,7 +71,7 @@ public sealed class CreateSaleCommandHandler(
         await context.SaveChangesAsync();
 
         return new CreateSaleResultDto(
-            invoice.Id.ToString(),
+            invoice.Id,
             invoice.InvoiceNumber,
             invoice.GrandTotal);
     }

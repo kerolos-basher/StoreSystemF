@@ -22,7 +22,7 @@ public sealed class GetProductDetailsQueryHandler(IApplicationDbContext context)
             .Where(d => d.ProductId == request.ProductId)
             .OrderByDescending(d => d.CreatedAt)
             .Select(d => new ProductDetailLineDto(
-                d.Id.ToString(),
+                d.Id,
                 d.Supplier != null ? d.Supplier.Name : "—",
                 d.Category != null ? d.Category.Name : "—",
                 d.Price,
@@ -42,7 +42,7 @@ public sealed class GetProductDetailsQueryHandler(IApplicationDbContext context)
             .Count();
 
         return new ProductDetailsDto(
-            product.Id.ToString(),
+            product.Id,
             product.ProductName,
             product.BarCode.ToString(),
             totalQuantity,

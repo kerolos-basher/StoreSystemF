@@ -24,7 +24,7 @@ public sealed class ProductsController(ISender sender) : ControllerBase
         var command = new CreatePurchaseEntryCommand(
             request.ProductName,
             request.Barcode ?? string.Empty,
-            ParseLong(request.CategoryId),
+            request.CategoryId,
             request.SupplierName ?? string.Empty,
             request.PurchasePrice,
             request.SellingPrice,
@@ -142,7 +142,7 @@ public sealed class ProductsController(ISender sender) : ControllerBase
     {
         public string ProductName { get; set; } = string.Empty;
         public string Barcode { get; set; }
-        public string CategoryId { get; set; }
+        public long CategoryId { get; set; }
         public string SupplierName { get; set; }
         public decimal PurchasePrice { get; set; }
         public decimal SellingPrice { get; set; }

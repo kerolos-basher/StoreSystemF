@@ -81,7 +81,7 @@ public sealed class SearchProductsQueryHandler(IApplicationDbContext context)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .Select(x => new ProductListItemDto(
-                x.ProductId.ToString(),
+                x.ProductId,
                 x.ProductName,
                 x.BarCode.ToString(),
                 x.CurrentQuantity,

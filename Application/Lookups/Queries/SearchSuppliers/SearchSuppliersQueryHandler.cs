@@ -21,7 +21,7 @@ public sealed class SearchSuppliersQueryHandler(IApplicationDbContext context)
         return await query
             .OrderBy(s => s.Name)
             .Take(20)
-            .Select(s => new SupplierLookupDto(s.Id.ToString(), s.Name))
+            .Select(s => new SupplierLookupDto(s.Id, s.Name))
             .ToListAsync(cancellationToken);
     }
 }

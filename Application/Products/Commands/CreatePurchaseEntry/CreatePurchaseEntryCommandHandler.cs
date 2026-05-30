@@ -53,7 +53,7 @@ public sealed class CreatePurchaseEntryCommandHandler(
 
         await context.SaveChangesAsync();
 
-        return new CreatePurchaseEntryResultDto(product.Id.ToString());
+        return new CreatePurchaseEntryResultDto(product.Id);
     }
 
     private async Task<Product> FindProductAsync(
@@ -93,6 +93,6 @@ public sealed class CreatePurchaseEntryCommandHandler(
             return null;
 
         var result = await sender.Send(new CreateSupplierCommand(supplierName.Trim()), cancellationToken);
-        return long.Parse(result.Id);
+        return result.Id;
     }
 }

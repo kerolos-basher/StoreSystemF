@@ -13,7 +13,7 @@ public sealed class GetCategoriesQueryHandler(IApplicationDbContext context)
         return await context.Category
             .AsNoTracking()
             .OrderBy(c => c.Name)
-            .Select(c => new CategoryLookupDto(c.Id.ToString(), c.Name))
+            .Select(c => new CategoryLookupDto(c.Id, c.Name))
             .ToListAsync(cancellationToken);
     }
 }

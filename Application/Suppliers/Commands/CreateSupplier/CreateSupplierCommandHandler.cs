@@ -17,7 +17,7 @@ public sealed class CreateSupplierCommandHandler(
             .FirstOrDefaultAsync(s => s.Name.ToLower() == normalized, cancellationToken);
 
         if (existing is not null)
-            return new CreateSupplierResultDto(existing.Id.ToString(), existing.Name);
+            return new CreateSupplierResultDto(existing.Id, existing.Name);
 
         var nextId = await sequenceService.GetNextValueAsync(
             SequenceKeys.SupplierSequence,
@@ -27,6 +27,6 @@ public sealed class CreateSupplierCommandHandler(
         context.Supplier.Add(supplier);
         await context.SaveChangesAsync();
 
-        return new CreateSupplierResultDto(supplier.Id.ToString(), supplier.Name);
+        return new CreateSupplierResultDto(supplier.Id, supplier.Name);
     }
 }

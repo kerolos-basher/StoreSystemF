@@ -29,7 +29,7 @@ public sealed class GetProductByBarcodeQueryHandler(IApplicationDbContext contex
             .FirstOrDefault();
 
         return new ProductByBarcodeDto(
-            product.Id.ToString(),
+            product.Id,
             product.ProductName,
             product.BarCode.ToString(),
             latestSelling,
