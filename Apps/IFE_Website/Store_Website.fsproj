@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="obj\Debug\net10.0\.NETCoreApp,Version=v10.0.AssemblyAttributes.fs" />
+    <Compile Include="obj\Debug\net10.0\Store_Website.AssemblyInfo.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
@@ -22,9 +24,15 @@
     <Content Include="FEProject\src\app\shared\components\generic-table\generic-table.component.html" />
     <Content Include="FEProject\src\app\shared\components\qr-code-dialog\qr-code-dialog.component.html" />
     <Content Include="FEProject\src\index.html" />
+    <Content Include="obj\Debug\net10.0\ILLink.Substitutions.xml" />
+    <Content Include="obj\Debug\net10.0\rpswa.dswa.cache.json" />
+    <Content Include="obj\Debug\net10.0\staticwebassets.removed.txt" />
+    <Content Include="obj\project.assets.json" />
+    <Content Include="obj\Store_Website.fsproj.nuget.dgspec.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="docs\HANDOFF.md" />
     <None Include="FEProject\.editorconfig" />
     <None Include="FEProject\README.md" />
     <None Include="FEProject\src\app\app.component.scss" />
@@ -36,6 +44,12 @@
     <None Include="FEProject\src\app\features\sales\sales-page.component.scss" />
     <None Include="FEProject\src\app\shared\components\qr-code-dialog\qr-code-dialog.component.scss" />
     <None Include="FEProject\src\styles.scss" />
+    <None Include="obj\Debug\net10.0\Store_Website.AssemblyInfoInputs.cache" />
+    <None Include="obj\Debug\net10.0\Store_Website.assets.cache" />
+    <None Include="obj\Debug\net10.0\Store_Website.fsproj.AssemblyReference.cache" />
+    <None Include="obj\project.nuget.cache" />
+    <None Include="obj\Store_Website.fsproj.nuget.g.props" />
+    <None Include="obj\Store_Website.fsproj.nuget.g.targets" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,6 +81,13 @@
     <TypeScriptCompile Include="FEProject\src\main.server.ts" />
     <TypeScriptCompile Include="FEProject\src\main.ts" />
     <TypeScriptCompile Include="FEProject\src\server.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="bin\Debug\net10.0\" />
+    <Folder Include="obj\Debug\net10.0\refint\" />
+    <Folder Include="obj\Debug\net10.0\ref\" />
+    <Folder Include="obj\Debug\net10.0\staticwebassets\" />
   </ItemGroup>
 
 </Project>
