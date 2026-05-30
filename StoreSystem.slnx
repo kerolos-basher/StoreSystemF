@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Apps/">
+    <Project Path="Apps/IFE_Api/Store_Api.csproj" />
+    <Project Path="Apps/IFE_Website/Store_Website.fsproj" />
+  </Folder>
+  <Folder Name="/Migrations/">
+    <Project Path="Migrations/DBMigration/DBMigration.csproj" />
+    <Project Path="Migrations/DBMigration_Api/DBMigration_Api.csproj" />
+  </Folder>
+  <Project Path="Application/Application.csproj" />
+  <Project Path="Common/Utilities.csproj" />
+  <Project Path="Domain/Domain.csproj" />
+  <Project Path="Infrastructure/Infrastructure.csproj" />
+  <Project Path="Resources/Resources.csproj" />
+</Solution>

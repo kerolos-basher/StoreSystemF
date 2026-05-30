@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ExceedMaxFileSize" xml:space="preserve">
+    <value>تجاوز الحد الأقصى لحجم الملف.</value>
+  </data>
+  <data name="FileNotExist" xml:space="preserve">
+    <value>الملف غير موجود.</value>
+  </data>
+  <data name="LockedUser" xml:space="preserve">
+    <value>الحساب مقفل.</value>
+  </data>
+  <data name="MissingData" xml:space="preserve">
+    <value>بيانات ناقصة.</value>
+  </data>
+  <data name="NotSupportedMediaType" xml:space="preserve">
+    <value>نوع الملف غير مدعوم.</value>
+  </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>غير مصرح.</value>
+  </data>
+  <data name="UnHandledException" xml:space="preserve">
+    <value>خطأ غير متوقع.</value>
+  </data>
+  <data name="CompanyNameRequired" xml:space="preserve">
+    <value>اسم الشركة مطلوب.</value>
+  </data>
+  <data name="EmailRequired" xml:space="preserve">
+    <value>البريد الإلكتروني مطلوب.</value>
+  </data>
+  <data name="UsernameRequired" xml:space="preserve">
+    <value>اسم المستخدم مطلوب.</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>كلمة المرور مطلوبة.</value>
+  </data>
+  <data name="FullNameRequired" xml:space="preserve">
+    <value>الاسم الكامل مطلوب.</value>
+  </data>
+  <data name="NationalIdRequired" xml:space="preserve">
+    <value>الرقم القومي مطلوب.</value>
+  </data>
+  <data name="NationalIdInvalidLength" xml:space="preserve">
+    <value>الرقم القومي يجب أن يكون 14 رقمًا.</value>
+  </data>
+  <data name="PhoneRequired" xml:space="preserve">
+    <value>رقم الهاتف مطلوب.</value>
+  </data>
+  <data name="PhoneInvalidLength" xml:space="preserve">
+    <value>رقم الهاتف يجب أن يكون بين 7 و 15 رقمًا.</value>
+  </data>
+  <data name="InsuranceCompanyPersonRequired" xml:space="preserve">
+    <value>المؤمن عليه مطلوب.</value>
+  </data>
+  <data name="PlateNumberRequired" xml:space="preserve">
+    <value>رقم اللوحة مطلوب.</value>
+  </data>
+  <data name="MakeRequired" xml:space="preserve">
+    <value>الشركة المصنعة مطلوبة.</value>
+  </data>
+  <data name="ModelRequired" xml:space="preserve">
+    <value>الموديل مطلوب.</value>
+  </data>
+  <data name="CompanyNameEnRequired" xml:space="preserve">
+    <value>اسم الشركة بالإنجليزية مطلوب.</value>
+  </data>
+  <data name="CompanyNameArRequired" xml:space="preserve">
+    <value>اسم الشركة بالعربية مطلوب.</value>
+  </data>
+  <data name="CompanyIdRequired" xml:space="preserve">
+    <value>الشركة مطلوبة.</value>
+  </data>
+  <data name="AccountNotFound" xml:space="preserve">
+    <value>الحساب غير موجود.</value>
+  </data>
+  <data name="IncorrectUsernameOrPassword" xml:space="preserve">
+    <value>اسم المستخدم أو كلمة المرور غير صحيحة.</value>
+  </data>
+  <data name="UsernameAlreadyExists" xml:space="preserve">
+    <value>يوجد مستخدم بهذا الاسم بالفعل.</value>
+  </data>
+  <data name="InsuranceCompanyNotFound" xml:space="preserve">
+    <value>شركة التأمين غير موجودة.</value>
+  </data>
+  <data name="InsuranceCompanyPersonNotFound" xml:space="preserve">
+    <value>المؤمن عليه غير موجود أو لا ينتمي لهذه الشركة.</value>
+  </data>
+  <data name="DataRequestNotFound" xml:space="preserve">
+    <value>طلب البيانات غير موجود.</value>
+  </data>
+  <data name="UserCreationFailed" xml:space="preserve">
+    <value>فشل إنشاء المستخدم.</value>
+  </data>
+  <data name="UserCreationIdentityErrors" xml:space="preserve">
+    <value>فشل إنشاء المستخدم: {0}</value>
+  </data>
+  <data name="RegistrationRequestNotFound" xml:space="preserve">
+    <value>طلب التسجيل غير موجود.</value>
+  </data>
+  <data name="RegistrationMainParticipantTicketNotFound" xml:space="preserve">
+    <value>تذكرة المشارك الرئيسي غير موجودة.</value>
+  </data>
+  <data name="RegistrationMainParticipantTicketNotApproved" xml:space="preserve">
+    <value>تذكرة المشارك الرئيسي غير معتمدة.</value>
+  </data>
+  <data name="RegistrationNameNotSent" xml:space="preserve">
+    <value>الاسم مطلوب.</value>
+  </data>
+  <data name="RegistrationPositionNotSent" xml:space="preserve">
+    <value>المنصب مطلوب.</value>
+  </data>
+  <data name="RegistrationTicketFeesNotSent" xml:space="preserve">
+    <value>رسوم التذكرة مطلوبة.</value>
+  </data>
+  <data name="RegistrationCurrencyNotSent" xml:space="preserve">
+    <value>العملة مطلوبة.</value>
+  </data>
+  <data name="RegistrationTitleRequired" xml:space="preserve">
+    <value>اللقب مطلوب.</value>
+  </data>
+  <data name="RegistrationNationalityRequired" xml:space="preserve">
+    <value>الجنسية مطلوبة.</value>
+  </data>
+  <data name="RegistrationTicketTypeNotSent" xml:space="preserve">
+    <value>نوع التذكرة مطلوب.</value>
+  </data>
+  <data name="RegistrationNationalIdOrPassportRequired" xml:space="preserve">
+    <value>الرقم القومي أو رقم جواز السفر مطلوب.</value>
+  </data>
+  <data name="RegistrationNationalIdAttachmentRequired" xml:space="preserve">
+    <value>مرفق الرقم القومي مطلوب.</value>
+  </data>
+  <data name="RegistrationPassportAttachmentRequired" xml:space="preserve">
+    <value>مرفق جواز السفر مطلوب.</value>
+  </data>
+  <data name="RegistrationRefundAmountIncorrect" xml:space="preserve">
+    <value>مبلغ الاسترداد غير صحيح.</value>
+  </data>
+  <data name="RegistrationRefundReasonRequired" xml:space="preserve">
+    <value>سبب الاسترداد مطلوب.</value>
+  </data>
+  <data name="RegistrationCancelSpouseTicketFirst" xml:space="preserve">
+    <value>يرجى إلغاء أو استرداد تذكرة الزوج أولاً.</value>
+  </data>
+  <data name="RegistrationTotalAfterDiscountIncorrect" xml:space="preserve">
+    <value>المبلغ الإجمالي بعد الخصم غير صحيح.</value>
+  </data>
+  <data name="RegistrationTotalAmountIncorrect" xml:space="preserve">
+    <value>المبلغ الإجمالي غير صحيح.</value>
+  </data>
+  <data name="RegistrationUserCategoryNotSent" xml:space="preserve">
+    <value>فئة المستخدم مطلوبة.</value>
+  </data>
+  <data name="RegistrationPaymentMethodNotSent" xml:space="preserve">
+    <value>طريقة الدفع مطلوبة.</value>
+  </data>
+  <data name="RegistrationRequestMissingMainParticipantTicket" xml:space="preserve">
+    <value>الطلب لا يحتوي على تذكرة للمشارك الرئيسي.</value>
+  </data>
+  <data name="RegistrationTicketInvalidStatusForOperation" xml:space="preserve">
+    <value>يجب ألا تكون حالة التذكرة ملغاة أو مرفوضة أو مستردة.</value>
+  </data>
+  <data name="RegistrationRequestTicketNotFound" xml:space="preserve">
+    <value>تذكرة طلب التسجيل غير موجودة.</value>
+  </data>
+  <data name="RegistrationTicketNotFound" xml:space="preserve">
+    <value>التذكرة غير موجودة.</value>
+  </data>
+  <data name="RegistrationTermsNotAccepted" xml:space="preserve">
+    <value>يجب الموافقة على الشروط والأحكام.</value>
+  </data>
+  <data name="RegistrationTotalAmountNotSent" xml:space="preserve">
+    <value>المبلغ الإجمالي مطلوب.</value>
+  </data>
+  <data name="RegistrationPaymentCurrencyNotSent" xml:space="preserve">
+    <value>عملة الدفع مطلوبة.</value>
+  </data>
+  <data name="RegistrationCountryRequired" xml:space="preserve">
+    <value>البلد مطلوب.</value>
+  </data>
+  <data name="RegistrationMainParticipantMustReopenFirst" xml:space="preserve">
+    <value>يجب على المشارك الرئيسي إعادة الفتح أولاً.</value>
+  </data>
+  <data name="RegistrationTicketMustBeCancelledOrRejected" xml:space="preserve">
+    <value>يجب أن تكون تذكرة طلب التسجيل ملغاة أو مرفوضة.</value>
+  </data>
+  <data name="RegistrationInvalidUserCategory" xml:space="preserve">
+    <value>فئة مستخدم غير صالحة.</value>
+  </data>
+  <data name="RegistrationSpouseIdentityMustDiffer" xml:space="preserve">
+    <value>يجب أن تكون مستندات هوية الزوج/الزوجة مختلفة عن المشارك الرئيسي.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>المستخدم غير موجود.</value>
+  </data>
+  <data name="CommitteeAgendaItemNotFound" xml:space="preserve">
+    <value>بند جدول الأعمال غير موجود.</value>
+  </data>
+  <data name="CommitteeInviteNotFound" xml:space="preserve">
+    <value>الدعوة غير موجودة.</value>
+  </data>
+  <data name="CommitteeNotFound" xml:space="preserve">
+    <value>اللجنة غير موجودة.</value>
+  </data>
+  <data name="CommitteeSessionNotFound" xml:space="preserve">
+    <value>جلسة اللجنة غير موجودة.</value>
+  </data>
+  <data name="CommitteeMemberAlreadyAssigned" xml:space="preserve">
+    <value>العضو مسجل بالفعل في هذه اللجنة.</value>
+  </data>
+  <data name="AccountNotExist" xml:space="preserve">
+    <value>الحساب غير موجود.</value>
+  </data>
+  <data name="UserNotExsists" xml:space="preserve">
+    <value>UserNotExsists</value>
+  </data>
+  <data name="OtpEmailFormatNotValid" xml:space="preserve">
+    <value>صيغة البريد الإلكتروني غير صحيحة.</value>
+  </data>
+  <data name="OtpEmailNotFound" xml:space="preserve">
+    <value>لم يتم العثور على سجل التحقق من البريد.</value>
+  </data>
+  <data name="OtpNotValidEmailOrOtp" xml:space="preserve">
+    <value>البريد الإلكتروني أو رمز التحقق غير صحيح.</value>
+  </data>
+  <data name="OtpEmailSendFailed" xml:space="preserve">
+    <value>فشل إرسال بريد التحقق.</value>
+  </data>
+</root>
