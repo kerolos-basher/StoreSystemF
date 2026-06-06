@@ -16,7 +16,7 @@ import { QrCodeDialogComponent } from '../../shared/components/qr-code-dialog/qr
 
 @Component({
   selector: 'app-products-view-page',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule,
