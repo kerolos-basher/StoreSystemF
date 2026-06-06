@@ -7,6 +7,8 @@ public sealed class SalesInvoiceItem : ParentEntity
     public long ProductDetailsId { get; private set; }
     public string ProductName { get; private set; } = string.Empty;
     public int Quantity { get; private set; }
+    public int ReturnedQuantity { get; private set; }
+    public int AvailableForReturn => Quantity - ReturnedQuantity;
     public decimal UnitPrice { get; private set; }
     public decimal LineTotal => Quantity * UnitPrice;
     public string Notes { get; private set; } = string.Empty;
@@ -29,6 +31,7 @@ public sealed class SalesInvoiceItem : ParentEntity
         ProductDetailsId = productDetailsId;
         ProductName = productName.Trim();
         Quantity = quantity;
+        ReturnedQuantity = 0;
         UnitPrice = unitPrice;
         Notes = notes?.Trim() ?? string.Empty;
     }
@@ -39,5 +42,16 @@ public sealed class SalesInvoiceItem : ParentEntity
             throw new Exception("الكمية غير صالحة.");
 
         Quantity += quantity;
+    }
+
+    public void RegisterReturn(int quantity)
+    {
+        if (quantity <= 0)
+            throw new Exception("الكمية غير صالحة.");
+
+        if (quantity > AvailableForReturn)
+            throw new Exception("الكمية المرتجعة تتجاوز الكمية المتاحة للإرجاع.");
+
+        ReturnedQuantity += quantity;
     }
 }

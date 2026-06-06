@@ -3,9 +3,7 @@ using Domain.SupplierAggregate;
 
 namespace Application.Suppliers.Commands.CreateSupplier;
 
-public sealed class CreateSupplierCommandHandler(
-    IApplicationDbContext context,
-    ISequenceService sequenceService)
+public sealed class CreateSupplierCommandHandler(IApplicationDbContext context)
     : ICommandHandler<CreateSupplierCommand, CreateSupplierResultDto>
 {
     public async Task<CreateSupplierResultDto> Handle(
@@ -19,11 +17,7 @@ public sealed class CreateSupplierCommandHandler(
         if (existing is not null)
             return new CreateSupplierResultDto(existing.Id, existing.Name);
 
-        var nextId = await sequenceService.GetNextValueAsync(
-            SequenceKeys.SupplierSequence,
-            cancellationToken);
-
-        var supplier = Supplier.Create(nextId, request.Name.Trim());
+        var supplier = Supplier.Create(request.Name.Trim());
         context.Supplier.Add(supplier);
         await context.SaveChangesAsync();
 

@@ -7,6 +7,7 @@ public sealed record CreateSaleResultDto(
 
 public sealed record SaleLineRequestDto(
     long ProductId,
+    long? ProductDetailsId,
     int Quantity,
     string Notes);
 
@@ -14,6 +15,7 @@ public sealed record SalesInvoiceDto(
     long Id,
     string InvoiceNumber,
     DateTime SaleDate,
+    long? CustomerId,
     decimal Subtotal,
     decimal Discount,
     decimal Tax,
@@ -22,8 +24,13 @@ public sealed record SalesInvoiceDto(
     IReadOnlyList<SalesInvoiceItemDto> Items);
 
 public sealed record SalesInvoiceItemDto(
+    long Id,
+    long ProductId,
+    long ProductDetailsId,
     string ProductName,
     int Quantity,
+    int ReturnedQuantity,
+    int AvailableForReturn,
     decimal UnitPrice,
     decimal LineTotal,
     string Notes);

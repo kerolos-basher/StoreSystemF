@@ -40,6 +40,7 @@ export class SalesPageComponent {
     this.api.createSale(
       this.store.items().map(x => ({
         productId: Number(x.productId),
+        productDetailsId: Number(x.productDetailsId),
         quantity: Number(x.quantity),
         notes: x.notes ?? ''
       })),

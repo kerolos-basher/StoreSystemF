@@ -22,7 +22,8 @@ public sealed class SalesController(ISender sender) : ControllerBase
             request.Items ?? [],
             request.Discount,
             request.Tax,
-            request.Notes ?? string.Empty);
+            request.Notes ?? string.Empty,
+            request.CustomerId);
 
         var result = await sender.Send(command, cancellationToken);
         return Ok(result);
@@ -68,5 +69,6 @@ public sealed class SalesController(ISender sender) : ControllerBase
         public decimal Discount { get; set; }
         public decimal Tax { get; set; }
         public string Notes { get; set; }
+        public long? CustomerId { get; set; }
     }
 }

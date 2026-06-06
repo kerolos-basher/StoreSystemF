@@ -1,9 +1,9 @@
 using Application.Abstractions.Persistence;
 using Application.Products.Dtos;
 using Domain.ProductAggregate;
-using Domain.SupplierAggregate;
 using MediatR;
 using Application.Suppliers.Commands.CreateSupplier;
+using Domain.InventoryAggregate;
 
 namespace Application.Products.Commands.CreatePurchaseEntry;
 
@@ -19,28 +19,43 @@ public sealed class CreatePurchaseEntryCommandHandler(
         var productName = request.ProductName.Trim();
         var sellingPrice = request.SellingPrice > 0 ? request.SellingPrice : request.PurchasePrice;
         var supplierId = await ResolveSupplierIdAsync(request.SupplierName, cancellationToken);
-        var barCode = ParseBarcode(request.Barcode);
+        var barCode = string.IsNullOrWhiteSpace(request.Barcode) ? null : request.Barcode.Trim();
         var purchaseDate = request.PurchaseDate?.ToUniversalTime();
 
-        var product = await FindProductAsync(productName, barCode, cancellationToken);
+        var product = await FindProductAsync(productName, request.ExistingProductId, cancellationToken);
+        long? productDetailsId = null;
+        string generatedBarcode;
 
         if (product is null)
         {
             product = Product.Create(
                 productName,
-                barCode,
                 supplierId,
                 request.CategoryId,
                 request.PurchasePrice,
                 sellingPrice,
                 request.Quantity,
                 request.Notes ?? string.Empty,
+                barCode,
                 purchaseDate);
 
             context.Product.Add(product);
+            await context.SaveChangesAsync();
+
+            var details = product.ProductDetails.First();
+            productDetailsId = details.Id;
+            generatedBarcode = details.BarCode;
+
+            context.InventoryTransaction.Add(
+                InventoryTransaction.CreatePurchase(
+                    product.Id,
+                    details.Id,
+                    request.Quantity,
+                    $"Purchase-{product.Id}"));
         }
         else
         {
+            var beforeCount = product.ProductDetails.Count;
             product.AddOrUpdateDetails(
                 supplierId,
                 request.CategoryId,
@@ -48,41 +63,52 @@ public sealed class CreatePurchaseEntryCommandHandler(
                 sellingPrice,
                 request.Quantity,
                 request.Notes ?? string.Empty,
+                barCode,
                 purchaseDate);
+
+            await context.SaveChangesAsync();
+
+            var details = product.ProductDetails.Count > beforeCount
+                ? product.ProductDetails.OrderByDescending(x => x.Id).First()
+                : product.ProductDetails.First(x =>
+                    x.SupplierId == supplierId &&
+                    x.CategoryId == request.CategoryId &&
+                    x.Price == request.PurchasePrice &&
+                    x.SeLingPrice == sellingPrice);
+
+            productDetailsId = details.Id;
+            generatedBarcode = details.BarCode;
+
+            context.InventoryTransaction.Add(
+                InventoryTransaction.CreatePurchase(
+                    product.Id,
+                    details.Id,
+                    request.Quantity,
+                    $"Purchase-{product.Id}"));
         }
 
         await context.SaveChangesAsync();
 
-        return new CreatePurchaseEntryResultDto(product.Id);
+        return new CreatePurchaseEntryResultDto(product.Id, productDetailsId, generatedBarcode);
     }
 
-    private async Task<Product> FindProductAsync(
+    private async Task<Product?> FindProductAsync(
         string productName,
-        Guid? barCode,
+        long? existingProductId,
         CancellationToken cancellationToken)
     {
         var query = context.Product
             .Include(p => p.ProductDetails)
             .AsQueryable();
 
-        if (barCode.HasValue)
+        if (existingProductId.HasValue)
         {
-            var byBarcode = await query.FirstOrDefaultAsync(p => p.BarCode == barCode.Value, cancellationToken);
-            if (byBarcode is not null)
-                return byBarcode;
+            return await query.FirstOrDefaultAsync(p => p.Id == existingProductId.Value, cancellationToken);
         }
 
         return await query.FirstOrDefaultAsync(
             p => p.ProductName.ToLower() == productName.ToLower(),
             cancellationToken);
-    }
-
-    private static Guid? ParseBarcode(string barcode)
-    {
-        if (string.IsNullOrWhiteSpace(barcode))
-            return null;
-
-        return Guid.TryParse(barcode, out var guid) ? guid : null;
     }
 
     private async Task<long?> ResolveSupplierIdAsync(

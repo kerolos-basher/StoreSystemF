@@ -11,8 +11,7 @@ import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { debounceTime } from 'rxjs';
 import { InventoryApiService } from '../../core/services/inventory-api.service';
 import { ProductListItem } from '../../shared/models/inventory.models';
-import { ProductDetailsDialogComponent } from './product-details-dialog.component';
-import { QrCodeDialogComponent } from '../../shared/components/qr-code-dialog/qr-code-dialog.component';
+import { ProductDetailsDialogComponent } from './product-details-dialog/product-details-dialog.component';
 
 @Component({
   selector: 'app-products-view-page',
@@ -165,28 +164,17 @@ export class ProductsViewPageComponent implements OnInit {
           maxWidth: '96vw',
           maxHeight: '90vh',
           autoFocus: false,
-          data: { details }
+          data: {
+            details,
+            onChanged: () => {
+              this.search();
+              this.loadStatistics();
+            }
+          }
         });
       },
       error: (err) => {
         this.snackBar.open(err?.error?.message ?? 'فشل تحميل التفاصيل', 'إغلاق', { duration: 3500 });
-      }
-    });
-  }
-
-  openQrCode(row: ProductListItem): void {
-    this.api.getQRCode(row.id).subscribe({
-      next: (qr) => {
-        this.dialog.open(QrCodeDialogComponent, {
-          width: '420px',
-          maxWidth: '96vw',
-          maxHeight: '90vh',
-          autoFocus: false,
-          data: { productName: row.productName, qr }
-        });
-      },
-      error: (err) => {
-        this.snackBar.open(err?.error?.message ?? 'فشل إنشاء رمز QR', 'إغلاق', { duration: 3500 });
       }
     });
   }
@@ -196,8 +184,4 @@ export class ProductsViewPageComponent implements OnInit {
     if (row) this.openDetails(row);
   }
 
-  onMenuQr(): void {
-    const row = this.selectedRow();
-    if (row) this.openQrCode(row);
-  }
 }

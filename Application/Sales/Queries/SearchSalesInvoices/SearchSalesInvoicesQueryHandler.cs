@@ -53,8 +53,13 @@ public sealed class SearchSalesInvoicesQueryHandler(IApplicationDbContext contex
                 x.GrandTotal,
                 x.Items.Count,
                 x.Items.Select(i => new SalesInvoiceItemDto(
+                    i.Id,
+                    i.ProductId,
+                    i.ProductDetailsId,
                     i.ProductName,
                     i.Quantity,
+                    i.ReturnedQuantity,
+                    i.AvailableForReturn,
                     i.UnitPrice,
                     i.LineTotal,
                     i.Notes)).ToList()))

@@ -12,19 +12,22 @@
       <div class="empty-state">لا توجد أصناف — امسح منتجاً للبدء</div>
     } @else {
       <div class="invoice-lines">
-        @for (item of store.items(); track item.productId) {
+        @for (item of store.items(); track item.productDetailsId) {
           <article class="line-card">
             <div class="line-head">
-              <strong>{{ item.productName }}</strong>
-              <button type="button" class="remove-btn" (click)="store.removeItem(item.productId)">×</button>
+              <div>
+                <strong>{{ item.productName }}</strong>
+                <small class="barcode-hint">{{ item.barcode }}</small>
+              </div>
+              <button type="button" class="remove-btn" (click)="store.removeItem(item.productDetailsId)">×</button>
             </div>
             <div class="line-controls">
               <label>الكمية
-                <input type="number" min="1" [max]="item.maxQuantity" [ngModel]="item.quantity" (ngModelChange)="store.updateQuantity(item.productId, +$event)" />
+                <input type="number" min="1" [max]="item.maxQuantity" [ngModel]="item.quantity" (ngModelChange)="store.updateQuantity(item.productDetailsId, +$event)" />
               </label>
               <span>{{ item.unitPrice * item.quantity | currency:'EGP':'symbol':'1.2-2' }}</span>
             </div>
-            <input class="notes-input" placeholder="ملاحظات..." [ngModel]="item.notes" (ngModelChange)="store.updateNotes(item.productId, $event)" />
+            <input class="notes-input" placeholder="ملاحظات..." [ngModel]="item.notes" (ngModelChange)="store.updateNotes(item.productDetailsId, $event)" />
           </article>
         }
       </div>

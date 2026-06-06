@@ -5,7 +5,6 @@ namespace Domain.ProductAggregate;
 public sealed class Product : ParentEntity
 {
     public string ProductName { get; private set; } = string.Empty;
-    public Guid BarCode { get; private set; }
 
     private readonly List<ProductDetails> _productDetails = new();
 
@@ -17,30 +16,25 @@ public sealed class Product : ParentEntity
     {
     }
 
-    private Product(
-        string productName,
-        Guid barCode)
+    private Product(string productName)
     {
         ProductName = productName;
-        BarCode = barCode;
     }
 
     public static Product Create(
         string productName,
-        Guid? barCode,
         long? supplierId,
         long? categoryId,
         decimal purchasePrice,
         decimal sellingPrice,
         int quantity,
         string notes,
+        string? barCode = null,
         DateTime? purchaseDate = null)
     {
         ValidateProduct(productName);
 
-        var product = new Product(
-            productName.Trim(),
-            barCode ?? Guid.NewGuid());
+        var product = new Product(productName.Trim());
 
         product.AddOrUpdateDetails(
             supplierId,
@@ -49,6 +43,7 @@ public sealed class Product : ParentEntity
             sellingPrice,
             quantity,
             notes,
+            barCode,
             purchaseDate);
 
         return product;
@@ -61,6 +56,7 @@ public sealed class Product : ParentEntity
         decimal sellingPrice,
         int quantity,
         string notes,
+        string? barCode = null,
         DateTime? purchaseDate = null)
     {
         if (quantity <= 0)
@@ -86,19 +82,26 @@ public sealed class Product : ParentEntity
             sellingPrice,
             quantity,
             notes,
+            barCode,
             purchaseDate);
 
         _productDetails.Add(details);
     }
 
-    public void Update(
-        string productName,
-        Guid barCode)
+    public void Update(string productName)
     {
         ValidateProduct(productName);
-
         ProductName = productName.Trim();
-        BarCode = barCode;
+        MarkUpdated();
+    }
+
+    public void SoftDelete()
+    {
+        if (_productDetails.Any(x => x.SoldQuantity > 0))
+            throw new Exception("لا يمكن حذف منتج له مبيعات.");
+
+        IsDeleted = true;
+        MarkUpdated();
     }
 
     public void DeleteDetails(long detailsId)
@@ -144,6 +147,35 @@ public sealed class Product : ParentEntity
         }
 
         return allocations;
+    }
+
+    public StockAllocation ReduceStockFromDetails(long productDetailsId, int quantity)
+    {
+        if (quantity <= 0)
+            throw new Exception("الكمية يجب أن تكون أكبر من صفر.");
+
+        if (IsDeleted)
+            throw new Exception("لا يمكن بيع منتج محذوف.");
+
+        var detail = _productDetails.FirstOrDefault(x => x.Id == productDetailsId)
+            ?? throw new Exception("تفاصيل المنتج غير موجودة.");
+
+        if (detail.RemainingQuantity < quantity)
+            throw new Exception("الكمية المتاحة غير كافية.");
+
+        detail.ReduceStock(quantity);
+        return new StockAllocation(detail.Id, quantity, detail.SeLingPrice);
+    }
+
+    public void RestoreStock(long productDetailsId, int quantity)
+    {
+        if (quantity <= 0)
+            throw new Exception("الكمية يجب أن تكون أكبر من صفر.");
+
+        var detail = _productDetails.FirstOrDefault(x => x.Id == productDetailsId)
+            ?? throw new Exception("تفاصيل المنتج غير موجودة.");
+
+        detail.RestoreStock(quantity);
     }
 
     private static void ValidateProduct(string productName)

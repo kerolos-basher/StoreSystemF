@@ -1,4 +1,6 @@
 using Application.Suppliers.Commands.CreateSupplier;
+using Application.Suppliers.Commands.DeleteSupplier;
+using Application.Suppliers.Commands.UpdateSupplier;
 using Application.Lookups.Queries.SearchSuppliers;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -27,6 +29,31 @@ public sealed class SuppliersController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new CreateSupplierCommand(request.Name), cancellationToken);
         return Ok(result);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(
+        string id,
+        [FromBody] CreateSupplierRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!long.TryParse(id, out var supplierId))
+            return BadRequest(new { message = "معرف المورد غير صالح." });
+
+        await sender.Send(new UpdateSupplierCommand(supplierId, request.Name), cancellationToken);
+        return Ok();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(
+        string id,
+        CancellationToken cancellationToken)
+    {
+        if (!long.TryParse(id, out var supplierId))
+            return BadRequest(new { message = "معرف المورد غير صالح." });
+
+        await sender.Send(new DeleteSupplierCommand(supplierId), cancellationToken);
+        return Ok();
     }
 
     public sealed class CreateSupplierRequest

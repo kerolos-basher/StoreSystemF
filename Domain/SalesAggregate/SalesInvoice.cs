@@ -4,6 +4,7 @@ public sealed class SalesInvoice : ParentEntity
 {
     public string InvoiceNumber { get; private set; } = string.Empty;
     public DateTime SaleDate { get; private set; }
+    public long? CustomerId { get; private set; }
     public decimal Subtotal { get; private set; }
     public decimal Discount { get; private set; }
     public decimal Tax { get; private set; }
@@ -21,7 +22,8 @@ public sealed class SalesInvoice : ParentEntity
         string invoiceNumber,
         decimal discount,
         decimal tax,
-        string notes)
+        string notes,
+        long? customerId = null)
     {
         if (string.IsNullOrWhiteSpace(invoiceNumber))
             throw new Exception("رقم الفاتورة مطلوب.");
@@ -38,6 +40,7 @@ public sealed class SalesInvoice : ParentEntity
             SaleDate = DateTime.UtcNow,
             Discount = discount,
             Tax = tax,
+            CustomerId = customerId,
             Notes = notes?.Trim() ?? string.Empty
         };
     }

@@ -1,0 +1,82 @@
+<section class="panel-card lookups-card">
+  <header class="page-header">
+    <h1>إدارة القوائم المرجعية</h1>
+    <p>الفئات · الموردون · أسباب المرتجع</p>
+  </header>
+
+  <nav class="tab-nav">
+    <button type="button" [class.active]="activeTab() === 'categories'" (click)="setTab('categories')">الفئات</button>
+    <button type="button" [class.active]="activeTab() === 'suppliers'" (click)="setTab('suppliers')">الموردون</button>
+    <button type="button" [class.active]="activeTab() === 'return-reasons'" (click)="setTab('return-reasons')">أسباب المرتجع</button>
+  </nav>
+
+  <form class="lookup-form" (ngSubmit)="save()">
+    <input [(ngModel)]="name" name="name" placeholder="الاسم..." required />
+    @if (activeTab() === 'return-reasons') {
+      <label class="checkbox-row">
+        <input type="checkbox" [(ngModel)]="isReturnToStock" name="isReturnToStock" />
+        يُعاد للمخزون
+      </label>
+    }
+    <button class="btn-primary" type="submit" [disabled]="saving() || !name.trim()">
+      {{ editingId() ? 'تحديث' : 'إضافة' }}
+    </button>
+    @if (editingId()) {
+      <button type="button" class="btn-secondary" (click)="cancelEdit()">إلغاء</button>
+    }
+  </form>
+
+  <div class="lookup-table-wrap">
+    @if (activeTab() === 'categories') {
+      <table>
+        <thead><tr><th>الاسم</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          @for (item of categories(); track item.id) {
+            <tr>
+              <td>{{ item.name }}</td>
+              <td class="actions">
+                <button type="button" (click)="startEdit(item.id, item.name)">تعديل</button>
+                <button type="button" class="danger" (click)="remove(item.id)">حذف</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (activeTab() === 'suppliers') {
+      <table>
+        <thead><tr><th>الاسم</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          @for (item of suppliers(); track item.id) {
+            <tr>
+              <td>{{ item.name }}</td>
+              <td class="actions">
+                <button type="button" (click)="startEdit(item.id, item.name)">تعديل</button>
+                <button type="button" class="danger" (click)="remove(item.id)">حذف</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (activeTab() === 'return-reasons') {
+      <table>
+        <thead><tr><th>الاسم</th><th>إعادة للمخزون</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          @for (item of returnReasons(); track item.id) {
+            <tr>
+              <td>{{ item.name }}</td>
+              <td>{{ item.isReturnToStock ? 'نعم' : 'لا' }}</td>
+              <td class="actions">
+                <button type="button" (click)="startEdit(item.id, item.name, item.isReturnToStock)">تعديل</button>
+                <button type="button" class="danger" (click)="remove(item.id)">حذف</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</section>

@@ -23,7 +23,7 @@ public sealed class SearchProductsQueryHandler(IApplicationDbContext context)
             .Select(g => new ProductRow(
                 g.Key,
                 g.First().Product.ProductName,
-                g.First().Product.BarCode,
+                g.OrderByDescending(x => x.CreatedAt).Select(x => x.BarCode).FirstOrDefault() ?? string.Empty,
                 g.Sum(x => x.RemainingQuantity),
                 g.OrderByDescending(x => x.CreatedAt).Select(x => x.Price).FirstOrDefault(),
                 g.OrderByDescending(x => x.CreatedAt).Select(x => x.SeLingPrice).FirstOrDefault(),
@@ -46,7 +46,7 @@ public sealed class SearchProductsQueryHandler(IApplicationDbContext context)
         if (!string.IsNullOrWhiteSpace(request.Barcode))
         {
             var barcode = request.Barcode.Trim().ToLower();
-            filtered = filtered.Where(x => x.BarCode.ToString().ToLower().Contains(barcode));
+            filtered = filtered.Where(x => x.BarCode.ToLower().Contains(barcode));
         }
 
         if (request.SupplierId.HasValue)
@@ -83,7 +83,7 @@ public sealed class SearchProductsQueryHandler(IApplicationDbContext context)
             .Select(x => new ProductListItemDto(
                 x.ProductId,
                 x.ProductName,
-                x.BarCode.ToString(),
+                x.BarCode,
                 x.CurrentQuantity,
                 x.LatestPurchasePrice,
                 x.SellingPrice,
@@ -136,7 +136,7 @@ public sealed class SearchProductsQueryHandler(IApplicationDbContext context)
     private sealed record ProductRow(
         long ProductId,
         string ProductName,
-        Guid BarCode,
+        string BarCode,
         int CurrentQuantity,
         decimal LatestPurchasePrice,
         decimal SellingPrice,

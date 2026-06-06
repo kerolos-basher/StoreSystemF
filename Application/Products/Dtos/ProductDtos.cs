@@ -1,6 +1,8 @@
 namespace Application.Products.Dtos;
 
-public sealed record CreatePurchaseEntryResultDto(long ProductId);
+public sealed record CreatePurchaseEntryResultDto(long ProductId, long? ProductDetailsId, string Barcode);
+
+public sealed record ProductNameLookupDto(long Id, string ProductName);
 
 public sealed record ProductListItemDto(
     long Id,
@@ -17,6 +19,7 @@ public sealed record ProductListItemDto(
 
 public sealed record ProductDetailLineDto(
     long Id,
+    string Barcode,
     string Supplier,
     string Category,
     decimal PurchasePrice,
@@ -29,7 +32,6 @@ public sealed record ProductDetailLineDto(
 public sealed record ProductDetailsDto(
     long Id,
     string ProductName,
-    string Barcode,
     int TotalQuantity,
     decimal InventoryValue,
     int PurchaseLineCount,
@@ -53,8 +55,11 @@ public sealed record CategoryLookupDto(long Id, string Name);
 
 public sealed record SupplierLookupDto(long Id, string Name);
 
+public sealed record ReturnReasonLookupDto(int Id, string Name, bool IsReturnToStock);
+
 public sealed record ProductByBarcodeDto(
     long Id,
+    long ProductDetailsId,
     string ProductName,
     string Barcode,
     decimal SellingPrice,
@@ -63,6 +68,7 @@ public sealed record ProductByBarcodeDto(
 
 public sealed record QRCodeDto(
     string ProductId,
+    string ProductDetailsId,
     string Barcode,
     string Base64Image,
     string ContentType);

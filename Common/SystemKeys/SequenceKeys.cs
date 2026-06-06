@@ -15,7 +15,9 @@ public static class SequenceKeys
 
     #region Lookup
     public const string SupplierSequence = "SupplierSequence";
+    public const string CategorySequence = "CategorySequence";
     public const string SalesInvoiceSequence = "SalesInvoiceSequence";
+    public const string ReturnInvoiceSequence = "ReturnInvoiceSequence";
     #endregion
 
     #region Committees / Sessions

@@ -22,14 +22,13 @@ namespace DBMigration.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.HasSequence("SalesInvoiceSequence");
-
-            modelBuilder.HasSequence("SupplierSequence");
-
             modelBuilder.Entity("Domain.CategoryAggregate.Category", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("CreatedBy")
                         .HasColumnType("bigint");
@@ -81,7 +80,11 @@ namespace DBMigration.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Reference")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long?>("ReturnInvoiceId")
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("SalesInvoiceId")
                         .HasColumnType("bigint");
@@ -89,8 +92,8 @@ namespace DBMigration.Migrations
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("TransactionType")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("TransactionType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdateTime")
                         .HasColumnType("datetime2");
@@ -103,6 +106,29 @@ namespace DBMigration.Migrations
                     b.ToTable("InventoryTransaction");
                 });
 
+            modelBuilder.Entity("Domain.LookupAggregate.ReturnReason", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReturnToStock")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ReturnReason", (string)null);
+                });
+
             modelBuilder.Entity("Domain.ProductAggregate.Product", b =>
                 {
                     b.Property<long>("Id")
@@ -110,9 +136,6 @@ namespace DBMigration.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<Guid>("BarCode")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("CreatedBy")
                         .HasColumnType("bigint");
@@ -124,7 +147,8 @@ namespace DBMigration.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("ProductName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime?>("UpdateTime")
                         .HasColumnType("datetime2");
@@ -145,6 +169,10 @@ namespace DBMigration.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("BarCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<long?>("CategoryId")
                         .HasColumnType("bigint");
 
@@ -161,7 +189,8 @@ namespace DBMigration.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -198,6 +227,109 @@ namespace DBMigration.Migrations
                     b.ToTable("ProductDetails");
                 });
 
+            modelBuilder.Entity("Domain.ReturnsAggregate.ReturnInvoice", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CreatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ReturnDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReturnNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReturnReasonType")
+                        .HasColumnType("int");
+
+                    b.Property<long>("SalesInvoiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ReturnInvoice");
+                });
+
+            modelBuilder.Entity("Domain.ReturnsAggregate.ReturnInvoiceItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CreatedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReturnToStock")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ItemReasonType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ProductDetailsId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<long>("ReturnInvoiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SalesInvoiceItemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("UpdatedBy")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReturnInvoiceId");
+
+                    b.ToTable("ReturnInvoiceItem");
+                });
+
             modelBuilder.Entity("Domain.SalesAggregate.SalesInvoice", b =>
                 {
                     b.Property<long>("Id")
@@ -212,6 +344,9 @@ namespace DBMigration.Migrations
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<long?>("CustomerId")
+                        .HasColumnType("bigint");
+
                     b.Property<decimal>("Discount")
                         .HasColumnType("decimal(18,2)");
 
@@ -219,7 +354,8 @@ namespace DBMigration.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("InvoiceNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -279,6 +415,9 @@ namespace DBMigration.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<int>("ReturnedQuantity")
+                        .HasColumnType("int");
+
                     b.Property<long>("SalesInvoiceId")
                         .HasColumnType("bigint");
 
@@ -301,7 +440,10 @@ namespace DBMigration.Migrations
             modelBuilder.Entity("Domain.SupplierAggregate.Supplier", b =>
                 {
                     b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<long>("CreatedBy")
                         .HasColumnType("bigint");
@@ -549,6 +691,15 @@ namespace DBMigration.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("Domain.ReturnsAggregate.ReturnInvoiceItem", b =>
+                {
+                    b.HasOne("Domain.ReturnsAggregate.ReturnInvoice", null)
+                        .WithMany("Items")
+                        .HasForeignKey("ReturnInvoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.SalesAggregate.SalesInvoiceItem", b =>
                 {
                     b.HasOne("Domain.SalesAggregate.SalesInvoice", null)
@@ -612,6 +763,11 @@ namespace DBMigration.Migrations
             modelBuilder.Entity("Domain.ProductAggregate.Product", b =>
                 {
                     b.Navigation("ProductDetails");
+                });
+
+            modelBuilder.Entity("Domain.ReturnsAggregate.ReturnInvoice", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Domain.SalesAggregate.SalesInvoice", b =>

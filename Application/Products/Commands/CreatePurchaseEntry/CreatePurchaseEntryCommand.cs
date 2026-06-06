@@ -4,6 +4,7 @@ namespace Application.Products.Commands.CreatePurchaseEntry;
 
 public sealed record CreatePurchaseEntryCommand(
     string ProductName,
+    long? ExistingProductId,
     string Barcode,
     long? CategoryId,
     string SupplierName,

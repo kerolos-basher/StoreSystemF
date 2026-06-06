@@ -1,0 +1,55 @@
+<section class="panel-card returns-card">
+  <header class="page-header">
+    <h1>المرتجعات</h1>
+    <p>مستند مرتجع مستقل مرتبط بالفاتورة الأصلية — لا يتم تعديل الفاتورة الأصلية.</p>
+  </header>
+
+  <div class="search-row">
+    <input [(ngModel)]="invoiceNumber" placeholder="رقم فاتورة المبيعات..." />
+    <button class="btn-primary" type="button" (click)="loadInvoice()">تحميل الفاتورة</button>
+  </div>
+
+  @if (loadedInvoiceId) {
+    <p class="loaded-invoice">الفاتورة: <strong>{{ loadedInvoiceNumber }}</strong></p>
+
+    <div class="form-row">
+      <label>سبب المرتجع العام
+        <select [(ngModel)]="returnReasonType">
+          @for (reason of returnReasons(); track reason.id) {
+            <option [ngValue]="reason.id">{{ reason.name }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <div class="return-lines">
+      @for (line of lines(); track line.salesInvoiceItemId) {
+        <article class="return-line">
+          <div class="line-head">
+            <strong>{{ line.productName }}</strong>
+            <span>متاح للإرجاع: {{ line.availableForReturn }}</span>
+          </div>
+          <div class="line-controls">
+            <label>الكمية
+              <input type="number" min="0" [max]="line.availableForReturn" [(ngModel)]="line.quantity" />
+            </label>
+            <label>سبب الصنف
+              <select [(ngModel)]="line.itemReasonType">
+                @for (reason of returnReasons(); track reason.id) {
+                  <option [ngValue]="reason.id">{{ reason.name }}</option>
+                }
+              </select>
+            </label>
+            <input placeholder="ملاحظات..." [(ngModel)]="line.notes" />
+          </div>
+        </article>
+      }
+    </div>
+
+    <textarea class="notes-area" placeholder="ملاحظات المرتجع..." [(ngModel)]="notes"></textarea>
+
+    <button class="btn-primary" type="button" [disabled]="saving()" (click)="submitReturn()">
+      {{ saving() ? 'جاري الحفظ...' : 'تسجيل المرتجع' }}
+    </button>
+  }
+</section>

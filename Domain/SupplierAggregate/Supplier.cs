@@ -1,8 +1,6 @@
-using Domain;
-
 namespace Domain.SupplierAggregate;
 
-public class Supplier : ParentEntityWithOutId
+public class Supplier : ParentEntity
 {
     public string Name { get; private set; } = string.Empty;
 
@@ -21,18 +19,18 @@ public class Supplier : ParentEntityWithOutId
         };
     }
 
-    public static Supplier Create(long id, string name)
+    public void Update(string name)
     {
-        if (id <= 0)
-            throw new Exception("معرف المورد غير صالح.");
-
         if (string.IsNullOrWhiteSpace(name))
             throw new Exception("اسم المورد مطلوب.");
 
-        return new Supplier
-        {
-            Id = id,
-            Name = name.Trim()
-        };
+        Name = name.Trim();
+        MarkUpdated();
+    }
+
+    public void SoftDelete()
+    {
+        IsDeleted = true;
+        MarkUpdated();
     }
 }

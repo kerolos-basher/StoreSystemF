@@ -13,16 +13,18 @@ public sealed class GetQRCodeQueryHandler(
         GetQRCodeQuery request,
         CancellationToken cancellationToken)
     {
-        var product = await context.Product
+        var details = await context.ProductDetails
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken)
-            ?? throw new Exception("المنتج غير موجود.");
+            .Include(d => d.Product)
+            .FirstOrDefaultAsync(d => d.Id == request.ProductDetailsId, cancellationToken)
+            ?? throw new Exception("تفاصيل المنتج غير موجودة.");
 
-        var barcode = product.BarCode.ToString();
+        var barcode = details.BarCode;
         var png = qrCodeService.GeneratePng(barcode);
 
         return new QRCodeDto(
-            product.Id.ToString(),
+            details.ProductId.ToString(),
+            details.Id.ToString(),
             barcode,
             Convert.ToBase64String(png),
             "image/png");

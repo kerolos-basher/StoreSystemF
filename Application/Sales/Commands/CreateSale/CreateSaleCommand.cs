@@ -6,4 +6,5 @@ public sealed record CreateSaleCommand(
     IReadOnlyList<SaleLineRequestDto> Items,
     decimal Discount,
     decimal Tax,
-    string Notes) : ICommand<CreateSaleResultDto>;
+    string Notes,
+    long? CustomerId = null) : ICommand<CreateSaleResultDto>;

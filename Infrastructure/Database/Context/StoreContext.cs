@@ -3,7 +3,9 @@ using Application.Abstractions.Persistence;
 using Application.Abstractions.Services;
 using Domain.CategoryAggregate;
 using Domain.InventoryAggregate;
+using Domain.LookupAggregate;
 using Domain.ProductAggregate;
+using Domain.ReturnsAggregate;
 using Domain.SalesAggregate;
 using Domain.SupplierAggregate;
 using Infrastructure.Database.Configurations;
@@ -28,6 +30,9 @@ public class StoreContext : IdentityDbContext, IApplicationDbContext
     public virtual DbSet<SalesInvoice> SalesInvoice { get; set; }
     public virtual DbSet<SalesInvoiceItem> SalesInvoiceItem { get; set; }
     public virtual DbSet<InventoryTransaction> InventoryTransaction { get; set; }
+    public virtual DbSet<ReturnReason> ReturnReason { get; set; }
+    public virtual DbSet<ReturnInvoice> ReturnInvoice { get; set; }
+    public virtual DbSet<ReturnInvoiceItem> ReturnInvoiceItem { get; set; }
 
     public virtual async Task<int> SaveChangesAsync(long? userId = null)
     {
@@ -61,16 +66,38 @@ public class StoreContext : IdentityDbContext, IApplicationDbContext
 
         modelBuilder.ApplyConfiguration(new ProductConfiguration());
         modelBuilder.ApplyConfiguration(new SalesInvoiceConfiguration());
+        modelBuilder.ApplyConfiguration(new ReturnInvoiceConfiguration());
 
-        #region Sequence
-        modelBuilder.HasSequence<long>(SequenceKeys.SupplierSequence)
-            .StartsAt(1)
-            .IncrementsBy(1);
+        modelBuilder.Entity<ReturnReason>(entity =>
+        {
+            entity.ToTable("ReturnReason");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Name).HasMaxLength(100);
+            entity.HasQueryFilter(x => !x.IsDeleted);
+        });
 
-        modelBuilder.HasSequence<long>(SequenceKeys.SalesInvoiceSequence)
-            .StartsAt(1)
-            .IncrementsBy(1);
-        #endregion
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.Property(x => x.ProductName).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<ProductDetails>(entity =>
+        {
+            entity.Property(x => x.BarCode).HasMaxLength(100);
+            entity.Property(x => x.Notes).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<SalesInvoice>(entity =>
+        {
+            entity.Property(x => x.InvoiceNumber).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<InventoryTransaction>(entity =>
+        {
+            entity.Property(x => x.TransactionType)
+                .HasConversion<int>();
+            entity.Property(x => x.Reference).HasMaxLength(100);
+        });
 
     }
 
