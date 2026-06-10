@@ -4,13 +4,40 @@
   border: 1px solid var(--border-color);
 }
 
-#barcode-scanner-region {
-  min-height: 280px;
+.scanner-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 200px;
+  padding: var(--space-3);
+  text-align: center;
+
+  p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+}
+
+.scanner-live {
+  [id^='barcode-scanner-region'] {
+    min-height: 280px;
+  }
+}
+
+.scanner-stop {
+  width: 100%;
+  border-radius: 0 !important;
+  border: none !important;
+  border-top: 1px solid var(--border-color) !important;
 }
 
 .scanner-error {
-  color: var(--danger);
-  padding: 0.75rem;
+  color: var(--color-danger);
+  padding: var(--space-2);
   margin: 0;
   text-align: center;
+  font-size: 0.9rem;
 }

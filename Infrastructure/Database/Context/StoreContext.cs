@@ -144,7 +144,7 @@ public class StoreContext : IdentityDbContext, IApplicationDbContext
         modelBuilder.HasSequence<long>(SequenceKeys.DeferredPaymentSequence);
         modelBuilder.HasSequence<long>(SequenceKeys.DeferredPaymentTransactionSequence);
         modelBuilder.HasSequence<long>(SequenceKeys.InventoryTransactionSequence);
-        modelBuilder.HasSequence<int>(SequenceKeys.ReturnReasonSequence);
+        modelBuilder.HasSequence<long>(SequenceKeys.ReturnReasonSequence);
         modelBuilder.HasSequence<long>(SequenceKeys.BarCodeSequence);
 
         UseSequenceId<Category>(modelBuilder);
@@ -159,7 +159,7 @@ public class StoreContext : IdentityDbContext, IApplicationDbContext
         UseSequenceId<DeferredPayment>(modelBuilder);
         UseSequenceId<DeferredPaymentTransaction>(modelBuilder);
         UseSequenceId<InventoryTransaction>(modelBuilder);
-        UseSequenceId<ReturnReason, int>(modelBuilder);
+        UseSequenceId<ReturnReason>(modelBuilder);
     }
 
     private static void UseSequenceId<TEntity>(ModelBuilder modelBuilder)
@@ -168,11 +168,6 @@ public class StoreContext : IdentityDbContext, IApplicationDbContext
             .Property<long>("Id")
             .ValueGeneratedNever();
 
-    private static void UseSequenceId<TEntity, TKey>(ModelBuilder modelBuilder)
-        where TEntity : class =>
-        modelBuilder.Entity<TEntity>()
-            .Property<TKey>("Id")
-            .ValueGeneratedNever();
 
     private static void ApplySoftDeleteQueryFilter(ModelBuilder modelBuilder)
     {

@@ -27,7 +27,37 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--space-2);
   margin-bottom: var(--space-2);
-  align-items: center;
+  align-items: start;
+}
+
+.amount-paid-field {
+  grid-column: 1 / -1;
+}
+
+.deferred-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+
+  .accent {
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+}
+
+.product-search-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+  align-items: start;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.product-search-form .full-width {
+  grid-column: 1 / -1;
 }
 
 .invoice-lines {
@@ -113,6 +143,10 @@
 .total-row.grand {
   font-size: 1rem;
   font-weight: 700;
+}
+
+.total-row + .total-row {
+  margin-top: var(--space-1);
 }
 
 .gold { color: var(--color-accent); }

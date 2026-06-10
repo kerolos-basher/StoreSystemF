@@ -1,5 +1,5 @@
-import { AsyncPipe, CurrencyPipe, DecimalPipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
+import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -9,7 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged, filter, Observable, switchMap } from 'rxjs';
 import { SalesStore } from '../../core/stores/sales.store';
 import { BarcodeScannerComponent } from '../../shared/components/barcode-scanner/barcode-scanner.component';
-import { CustomerAutoComplete } from '../../shared/models/inventory.models';
+import { CustomerAutoComplete, ProductDetailsAutoComplete, ProductDetailsSearch } from '../../shared/models/inventory.models';
 import { SalesService } from './sales.service';
 
 @Component({
@@ -18,7 +18,6 @@ import { SalesService } from './sales.service';
   providers: [SalesService],
   imports: [
     AsyncPipe,
-    CurrencyPipe,
     DecimalPipe,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -39,11 +38,29 @@ export class SalesComponent implements OnInit {
 
   readonly completing = signal(false);
   filteredCustomers$!: Observable<CustomerAutoComplete[]>;
+  filteredProducts$!: Observable<ProductDetailsAutoComplete[]>;
 
   readonly customerForm = this.fb.group({
     customerName: [''],
     customerPhone: [''],
-    isDeferredPayment: [false]
+    isDeferredPayment: [false],
+    amountPaid: [{ value: 0, disabled: true }]
+  });
+
+  readonly productSearchForm = this.fb.group({
+    barcode: [''],
+    productName: ['']
+  });
+
+  private readonly syncPaidWithTotal = effect(() => {
+    const total = this.store.grandTotal();
+    const paid = this.store.amountPaid();
+    if (paid > total) {
+      this.store.amountPaid.set(total);
+      if (this.customerForm.controls.amountPaid.enabled) {
+        this.customerForm.controls.amountPaid.setValue(total, { emitEvent: false });
+      }
+    }
   });
 
   ngOnInit(): void {
@@ -53,26 +70,75 @@ export class SalesComponent implements OnInit {
       filter((v): v is string => typeof v === 'string' && v.trim().length >= 2),
       switchMap(term => this.service.searchCustomers(term.trim()))
     );
+
+    this.filteredProducts$ = this.productSearchForm.controls.productName.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      filter((v): v is string => typeof v === 'string' && v.trim().length >= 2),
+      switchMap(term => this.service.searchAutocomplete(term.trim()))
+    );
+
+    this.customerForm.controls.amountPaid.valueChanges.subscribe(value => {
+      const paid = Math.max(0, Number(value) || 0);
+      const capped = Math.min(paid, this.store.grandTotal());
+      if (paid !== capped) {
+        this.customerForm.controls.amountPaid.setValue(capped, { emitEvent: false });
+      }
+      this.store.amountPaid.set(capped);
+    });
   }
 
   onScan(barcode: string): void {
-    this.service.searchByBarcode(barcode).subscribe({
+    this.lookupBarcode(barcode);
+  }
+
+  lookupBarcode(barcode?: string): void {
+    const code = (barcode ?? this.productSearchForm.controls.barcode.value ?? '').trim();
+    if (!code) return;
+
+    this.service.searchByBarcode(code).subscribe({
       next: product => {
-        if (product.remainingQuantity <= 0) {
-          this.snackBar.open('الكمية غير متوفرة', 'إغلاق', { duration: 2500 });
-          return;
-        }
-        this.store.addOrIncrement({
-          productId: product.productId,
-          productDetailsId: product.productDetailsId,
-          productName: product.productName,
-          supplierName: product.supplierName,
-          barcode: product.barcode,
-          sellingPrice: product.suggestedSellingPrice,
-          availableQuantity: product.remainingQuantity
-        });
+        this.productSearchForm.patchValue({ barcode: product.barcode, productName: product.productName });
+        this.addProduct(product);
       },
       error: () => this.snackBar.open('المنتج غير موجود', 'إغلاق', { duration: 2500 })
+    });
+  }
+
+  selectProduct(item: ProductDetailsAutoComplete): void {
+    this.productSearchForm.patchValue({ productName: item.productName, barcode: item.barcode });
+    this.addProduct({
+      productDetailsId: item.productDetailsId,
+      productId: item.productId,
+      productName: item.productName,
+      barcode: item.barcode,
+      purchasePrice: item.purchasePrice,
+      suggestedSellingPrice: item.suggestedSellingPrice,
+      supplierName: item.supplierName,
+      categoryName: '',
+      remainingQuantity: item.remainingQuantity,
+      notes: ''
+    });
+  }
+
+  displayProduct(item: ProductDetailsAutoComplete | string): string {
+    return typeof item === 'string' ? item : `${item.productName} — ${item.supplierName}`;
+  }
+
+  private addProduct(product: ProductDetailsSearch): void {
+    if (product.remainingQuantity <= 0) {
+      this.snackBar.open('الكمية غير متوفرة', 'إغلاق', { duration: 2500 });
+      return;
+    }
+
+    this.store.addOrIncrement({
+      productId: product.productId,
+      productDetailsId: product.productDetailsId,
+      productName: product.productName,
+      supplierName: product.supplierName,
+      barcode: product.barcode,
+      sellingPrice: product.suggestedSellingPrice,
+      availableQuantity: product.remainingQuantity
     });
   }
 
@@ -99,12 +165,35 @@ export class SalesComponent implements OnInit {
 
   onDeferredChange(checked: boolean): void {
     this.store.isDeferredPayment.set(checked);
+    const amountControl = this.customerForm.controls.amountPaid;
+    if (checked) {
+      amountControl.enable();
+      amountControl.setValue(0);
+      this.store.amountPaid.set(0);
+    } else {
+      amountControl.disable();
+      amountControl.setValue(0);
+      this.store.amountPaid.set(0);
+    }
   }
 
   completeSale(): void {
     if (this.store.items().length === 0) return;
 
     const raw = this.customerForm.getRawValue();
+    const isDeferred = !!raw.isDeferredPayment;
+    const amountPaid = isDeferred ? Math.max(0, Number(raw.amountPaid) || 0) : this.store.grandTotal();
+
+    if (isDeferred && !raw.customerName?.trim()) {
+      this.snackBar.open('يجب إدخال اسم العميل للدفع الآجل', 'إغلاق', { duration: 3000 });
+      return;
+    }
+
+    if (isDeferred && amountPaid > this.store.grandTotal()) {
+      this.snackBar.open('المبلغ المدفوع أكبر من إجمالي الفاتورة', 'إغلاق', { duration: 3000 });
+      return;
+    }
+
     this.completing.set(true);
     this.service.createSale(
       this.store.items().map(x => ({
@@ -117,12 +206,15 @@ export class SalesComponent implements OnInit {
       raw.customerPhone ?? '',
       this.store.customerId(),
       this.store.notes(),
-      !!raw.isDeferredPayment
+      isDeferred,
+      amountPaid
     ).subscribe({
       next: result => {
         this.completing.set(false);
         this.store.clear();
-        this.customerForm.reset({ customerName: '', customerPhone: '', isDeferredPayment: false });
+        this.customerForm.reset({ customerName: '', customerPhone: '', isDeferredPayment: false, amountPaid: 0 });
+        this.customerForm.controls.amountPaid.disable();
+        this.productSearchForm.reset({ barcode: '', productName: '' });
         this.snackBar.open(`تم البيع — فاتورة ${result.invoiceNumber}`, 'إغلاق', { duration: 4000 });
       },
       error: err => {

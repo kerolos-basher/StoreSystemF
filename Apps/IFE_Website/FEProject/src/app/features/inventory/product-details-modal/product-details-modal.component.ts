@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AppDialogService } from '../../../core/services/app-dialog.service';
 import { QrCodeDialogComponent } from '../../../shared/components/qr-code-dialog/qr-code-dialog.component';
 import { ProductDetails } from '../../../shared/models/inventory.models';
 import { ProductDetailsModalData } from './product-details-modal.interfaces';
@@ -19,6 +20,7 @@ import { ProductDetailsModalService } from './product-details-modal.service';
 export class ProductDetailsModalComponent {
   private readonly modalService = inject(ProductDetailsModalService);
   private readonly dialog = inject(MatDialog);
+  private readonly appDialog = inject(AppDialogService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialogRef = inject(MatDialogRef<ProductDetailsModalComponent>);
   private changed = false;
@@ -64,14 +66,21 @@ export class ProductDetailsModalComponent {
       this.snackBar.open('لا يمكن حذف الصنف — يوجد دفعات مرتبطة', 'إغلاق', { duration: 3500 });
       return;
     }
-    if (!confirm('حذف الصنف بالكامل؟')) return;
-    this.modalService.deleteProduct(this.details().id).subscribe({
+    this.appDialog.confirm({
+      title: 'حذف الصنف',
+      message: 'هل تريد حذف الصنف بالكامل؟',
+      confirmText: 'حذف',
+      danger: true
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.modalService.deleteProduct(this.details().id).subscribe({
       next: () => {
         this.changed = true;
         this.snackBar.open('تم الحذف', 'إغلاق', { duration: 2500 });
         this.dialogRef.close(true);
       },
       error: err => this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 })
+      });
     });
   }
 
@@ -100,22 +109,35 @@ export class ProductDetailsModalComponent {
   }
 
   deleteLine(lineId: string, force = false): void {
-    const msg = force ? 'حذف إجباري لهذه الدفعة؟' : 'حذف هذه الدفعة؟';
-    if (!confirm(msg)) return;
-    this.modalService.deleteProductDetails(this.details().id, lineId, force).subscribe({
-      next: () => {
-        this.reloadDetails();
-        this.snackBar.open('تم الحذف', 'إغلاق', { duration: 2500 });
-      },
-      error: err => {
-        if (!force) {
-          if (confirm('فشل الحذف — هل تريد الحذف الإجباري؟')) {
-            this.deleteLine(lineId, true);
+    const title = force ? 'حذف إجباري' : 'حذف الدفعة';
+    const message = force ? 'هل تريد الحذف الإجباري لهذه الدفعة؟' : 'هل تريد حذف هذه الدفعة؟';
+    this.appDialog.confirm({
+      title,
+      message,
+      confirmText: 'حذف',
+      danger: true
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.modalService.deleteProductDetails(this.details().id, lineId, force).subscribe({
+        next: () => {
+          this.reloadDetails();
+          this.snackBar.open('تم الحذف', 'إغلاق', { duration: 2500 });
+        },
+        error: err => {
+          if (!force) {
+            this.appDialog.confirm({
+              title: 'فشل الحذف',
+              message: 'فشل الحذف — هل تريد الحذف الإجباري؟',
+              confirmText: 'حذف إجباري',
+              danger: true
+            }).subscribe(forceConfirmed => {
+              if (forceConfirmed) this.deleteLine(lineId, true);
+            });
+          } else {
+            this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 });
           }
-        } else {
-          this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 });
         }
-      }
+      });
     });
   }
 

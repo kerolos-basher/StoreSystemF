@@ -1,0 +1,45 @@
+.confirm-dialog {
+  text-align: center;
+}
+
+.confirm-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto var(--space-2);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+
+  &.danger {
+    background: rgba(255, 59, 48, 0.12);
+    border-color: rgba(255, 59, 48, 0.28);
+  }
+}
+
+h2[mat-dialog-title] {
+  margin: 0 0 var(--space-1);
+  font-size: 1.1rem;
+  color: var(--color-white);
+  text-align: center;
+}
+
+mat-dialog-content p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+mat-dialog-actions {
+  padding-top: var(--space-2);
+  gap: var(--space-1);
+  justify-content: center !important;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #e0352b, #ff5249) !important;
+}

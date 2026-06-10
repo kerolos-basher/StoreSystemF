@@ -20,7 +20,7 @@ public sealed class CreateReturnReasonCommandHandler(
         if (existing is not null)
             return new ReturnReasonLookupDto(existing.Id, existing.Name, existing.IsReturnToStock);
 
-        var id = (int)await sequenceService.GetNextValueAsync(SequenceKeys.ReturnReasonSequence, cancellationToken);
+        var id = await sequenceService.GetNextValueAsync(SequenceKeys.ReturnReasonSequence, cancellationToken);
         var reason = ReturnReason.Create(id, request.Name.Trim(), request.IsReturnToStock);
         context.ReturnReason.Add(reason);
         await context.SaveChangesAsync();

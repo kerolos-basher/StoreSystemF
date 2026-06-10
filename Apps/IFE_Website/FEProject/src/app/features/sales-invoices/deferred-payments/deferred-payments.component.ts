@@ -83,7 +83,9 @@ export class DeferredPaymentsComponent implements OnInit {
     this.dialog.open(PaymentStatementModalComponent, {
       width: '640px',
       maxWidth: '96vw',
-      panelClass: 'statement-dialog',
+      panelClass: 'app-dialog',
+      autoFocus: false,
+      restoreFocus: true,
       data: { payment }
     });
   }
@@ -93,6 +95,9 @@ export class DeferredPaymentsComponent implements OnInit {
     const ref = this.dialog.open(RegisterPaymentModalComponent, {
       width: '480px',
       maxWidth: '96vw',
+      panelClass: 'app-dialog',
+      autoFocus: false,
+      restoreFocus: true,
       data: { payment }
     });
     ref.afterClosed().subscribe(changed => {

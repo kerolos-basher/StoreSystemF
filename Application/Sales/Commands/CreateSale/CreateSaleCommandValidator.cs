@@ -17,5 +17,13 @@ public sealed class CreateSaleCommandValidator : AbstractValidator<CreateSaleCom
         RuleFor(x => x)
             .Must(x => !x.IsDeferredPayment || !string.IsNullOrWhiteSpace(x.CustomerName))
             .WithMessage("يجب تحديد اسم العميل للدفع الآجل.");
+
+        RuleFor(x => x.AmountPaid)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("المبلغ المدفوع لا يمكن أن يكون سالباً.");
+
+        RuleFor(x => x)
+            .Must(x => !x.IsDeferredPayment || x.AmountPaid >= 0)
+            .WithMessage("المبلغ المدفوع غير صالح للدفع الآجل.");
     }
 }

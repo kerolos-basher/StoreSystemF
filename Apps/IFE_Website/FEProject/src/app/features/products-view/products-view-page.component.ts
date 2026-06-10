@@ -163,7 +163,9 @@ export class ProductsViewPageComponent implements OnInit {
           width: '920px',
           maxWidth: '96vw',
           maxHeight: '90vh',
+          panelClass: 'app-dialog',
           autoFocus: false,
+          restoreFocus: true,
           data: {
             details,
             onChanged: () => {

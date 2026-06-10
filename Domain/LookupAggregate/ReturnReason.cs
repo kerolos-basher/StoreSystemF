@@ -2,7 +2,7 @@ namespace Domain.LookupAggregate;
 
 public sealed class ReturnReason
 {
-    public int Id { get; private set; }
+    public long Id { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public bool IsReturnToStock { get; private set; }
     public bool IsDeleted { get; private set; }
@@ -11,7 +11,7 @@ public sealed class ReturnReason
     {
     }
 
-    private ReturnReason(int id, string name, bool isReturnToStock)
+    private ReturnReason(long id, string name, bool isReturnToStock)
     {
         if (id <= 0)
             throw new ArgumentException("المعرف غير صالح.", nameof(id));
@@ -21,7 +21,7 @@ public sealed class ReturnReason
         IsReturnToStock = isReturnToStock;
     }
 
-    public static ReturnReason Create(int id, string name, bool isReturnToStock = true)
+    public static ReturnReason Create(long id, string name, bool isReturnToStock = true)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new Exception("اسم السبب مطلوب.");

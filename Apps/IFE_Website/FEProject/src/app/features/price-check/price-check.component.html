@@ -37,11 +37,11 @@
         <div class="result-grid">
           <div>
             <span class="stat-label">السعر المقترح</span>
-            <strong class="suggested-price">{{ result()!.suggestedSellingPrice | number:'1.2-2' }} ج.م</strong>
+            <strong class="suggested-price money-value">{{ result()!.suggestedSellingPrice | number:'1.2-2' }} ج.م</strong>
           </div>
           <div>
             <span class="stat-label">سعر الشراء</span>
-            <strong>{{ result()!.purchasePrice | number:'1.2-2' }} ج.م</strong>
+            <strong class="money-value">{{ result()!.purchasePrice | number:'1.2-2' }} ج.م</strong>
           </div>
           <div>
             <span class="stat-label">المورد</span>

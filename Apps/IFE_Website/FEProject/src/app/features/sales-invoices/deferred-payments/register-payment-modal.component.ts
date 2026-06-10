@@ -11,6 +11,7 @@ import { RegisterPaymentModalData } from './register-payment-modal.interfaces';
 @Component({
   selector: 'app-register-payment-modal',
   standalone: true,
+  providers: [DeferredPaymentsService],
   imports: [DecimalPipe, MatDialogModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSnackBarModule],
   templateUrl: './register-payment-modal.component.html',
   styleUrl: './register-payment-modal.component.scss'

@@ -55,7 +55,7 @@ public sealed record CategoryLookupDto(long Id, string Name);
 
 public sealed record SupplierLookupDto(long Id, string Name);
 
-public sealed record ReturnReasonLookupDto(int Id, string Name, bool IsReturnToStock);
+public sealed record ReturnReasonLookupDto(long Id, string Name, bool IsReturnToStock);
 
 public sealed record ProductByBarcodeDto(
     long Id,

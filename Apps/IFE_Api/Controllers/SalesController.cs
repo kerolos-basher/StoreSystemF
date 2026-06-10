@@ -27,7 +27,8 @@ public sealed class SalesController(ISender sender) : ControllerBase
             request.CustomerPhone,
             request.CustomerId,
             request.Notes ?? string.Empty,
-            request.IsDeferredPayment);
+            request.IsDeferredPayment,
+            request.AmountPaid);
 
         var result = await sender.Send(command, cancellationToken);
         return Ok(result);
@@ -122,6 +123,7 @@ public sealed class SalesController(ISender sender) : ControllerBase
         public long? CustomerId { get; set; }
         public string Notes { get; set; }
         public bool IsDeferredPayment { get; set; }
+        public decimal AmountPaid { get; set; }
     }
 
     public sealed class UpdateSalesInvoiceRequest

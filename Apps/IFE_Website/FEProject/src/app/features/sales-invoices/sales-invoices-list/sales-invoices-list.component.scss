@@ -1,35 +1,116 @@
-.filters {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr) auto;
-  gap: var(--space-2);
-  align-items: start;
+.invoices-panel {
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) auto;
+    gap: var(--space-2);
+    align-items: start;
+    margin-bottom: var(--space-3);
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: var(--space-1);
+    padding-top: 2px;
+  }
+}
+
+.invoice-skeleton {
+  height: 52px;
   margin-bottom: var(--space-2);
 }
 
-.filter-actions {
+.invoices-table {
+  .invoice-row.expanded td {
+    background: rgba(0, 229, 255, 0.04);
+    border-bottom-color: transparent;
+  }
+
+  .inv-link {
+    border: none;
+    background: none;
+    color: var(--color-accent);
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+  }
+
+  .amount {
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+
+  .muted {
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+  }
+}
+
+.detail-row td {
+  padding: 0 !important;
+  background: rgba(0, 0, 0, 0.18) !important;
+}
+
+.invoice-detail {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.totals-mini {
+  margin-bottom: var(--space-2);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.lines-table {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.actions-cell {
   display: flex;
-  gap: var(--space-1);
-  padding-top: 2px;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.small {
+  padding: 5px 10px;
+  font-size: 0.82rem;
+}
+
+.danger {
+  color: #ff8a82 !important;
+  border-color: rgba(255, 59, 48, 0.35) !important;
 }
 
 .pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
   color: var(--color-text-muted);
-  font-size: 0.78rem;
-}
+  font-size: 0.9rem;
 
-.pagination div {
-  display: flex;
-  gap: var(--space-1);
+  div {
+    display: flex;
+    gap: var(--space-1);
+  }
 }
 
 @media (max-width: 900px) {
-  .filters { grid-template-columns: 1fr 1fr; }
+  .invoices-panel .filters {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 640px) {
-  .filters { grid-template-columns: 1fr; }
+  .invoices-panel .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .actions-cell {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

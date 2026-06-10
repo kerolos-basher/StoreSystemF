@@ -164,7 +164,9 @@ export class InventoryListComponent implements OnInit {
           width: '1100px',
           maxWidth: '96vw',
           maxHeight: '92vh',
+          panelClass: 'app-dialog',
           autoFocus: false,
+          restoreFocus: true,
           data: { details }
         });
         ref.afterClosed().subscribe(changed => {

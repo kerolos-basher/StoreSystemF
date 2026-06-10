@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { AppDialogService } from '../../../core/services/app-dialog.service';
 import { SalesInvoiceListItem } from '../../../shared/models/inventory.models';
 import { EditInvoiceModalComponent } from './edit-invoice-modal.component';
 import { SalesInvoicesListService } from './sales-invoices-list.service';
@@ -32,6 +33,7 @@ export class SalesInvoicesListComponent implements OnInit {
   private readonly service = inject(SalesInvoicesListService);
   private readonly fb = inject(FormBuilder);
   private readonly dialog = inject(MatDialog);
+  private readonly appDialog = inject(AppDialogService);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly invoices = signal<SalesInvoiceListItem[]>([]);
@@ -90,15 +92,18 @@ export class SalesInvoicesListComponent implements OnInit {
     this.expandedId.update(current => current === id ? null : id);
   }
 
-  editInvoice(inv: SalesInvoiceListItem): void {
+  editInvoice(inv: SalesInvoiceListItem, event?: Event): void {
+    event?.stopPropagation();
     this.service.getInvoice(Number(inv.id)).subscribe({
       next: invoice => {
-        const ref = this.dialog.open(EditInvoiceModalComponent, {
-          width: '700px',
+        this.dialog.open(EditInvoiceModalComponent, {
+          width: '720px',
           maxWidth: '96vw',
+          panelClass: 'app-dialog',
+          autoFocus: false,
+          restoreFocus: true,
           data: { invoice }
-        });
-        ref.afterClosed().subscribe(changed => {
+        }).afterClosed().subscribe(changed => {
           if (changed) this.search();
         });
       },
@@ -106,14 +111,23 @@ export class SalesInvoicesListComponent implements OnInit {
     });
   }
 
-  deleteInvoice(inv: SalesInvoiceListItem): void {
-    if (!confirm(`حذف الفاتورة ${inv.invoiceNumber}؟`)) return;
-    this.service.deleteInvoice(Number(inv.id)).subscribe({
-      next: () => {
-        this.snackBar.open('تم الحذف', 'إغلاق', { duration: 2500 });
-        this.search();
-      },
-      error: err => this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 })
+  deleteInvoice(inv: SalesInvoiceListItem, event?: Event): void {
+    event?.stopPropagation();
+    this.appDialog.confirm({
+      title: 'حذف الفاتورة',
+      message: `هل تريد حذف الفاتورة ${inv.invoiceNumber}؟ لا يمكن التراجع عن هذا الإجراء.`,
+      confirmText: 'حذف',
+      cancelText: 'إلغاء',
+      danger: true
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.service.deleteInvoice(Number(inv.id)).subscribe({
+        next: () => {
+          this.snackBar.open('تم الحذف', 'إغلاق', { duration: 2500 });
+          this.search();
+        },
+        error: err => this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 })
+      });
     });
   }
 

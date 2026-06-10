@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { AppDialogService } from '../../../core/services/app-dialog.service';
 import { Category, ReturnReason, Supplier } from '../../../shared/models/inventory.models';
 import { LookupTab } from './lookups-page.interface';
 import { LookupsPageService } from './lookups-page.service';
@@ -15,6 +16,7 @@ import { LookupsPageService } from './lookups-page.service';
 })
 export class LookupsPageComponent implements OnInit {
   private readonly pageService = inject(LookupsPageService);
+  private readonly appDialog = inject(AppDialogService);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly activeTab = signal<LookupTab>('categories');
@@ -100,8 +102,19 @@ export class LookupsPageComponent implements OnInit {
   }
 
   remove(id: string | number): void {
-    if (!confirm('هل أنت متأكد من الحذف؟')) return;
+    this.appDialog.confirm({
+      title: 'تأكيد الحذف',
+      message: 'هل أنت متأكد من الحذف؟ لا يمكن التراجع عن هذا الإجراء.',
+      confirmText: 'حذف',
+      cancelText: 'إلغاء',
+      danger: true
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.removeConfirmed(id);
+    });
+  }
 
+  private removeConfirmed(id: string | number): void {
     const tab = this.activeTab();
     const fail = (err: { error?: { message?: string } }) =>
       this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 });

@@ -6,7 +6,7 @@
 <div class="stats-row">
   <article class="stat-card">
     <p class="stat-label">إجمالي الصفحة</p>
-    <p class="stat-value gold">{{ summary().totalSales | number:'1.2-2' }} ج.م</p>
+    <p class="stat-value gold money-value">{{ summary().totalSales | number:'1.2-2' }} ج.م</p>
   </article>
   <article class="stat-card">
     <p class="stat-label">عدد الفواتير</p>
@@ -18,7 +18,7 @@
   </article>
 </div>
 
-<section class="panel-card">
+<section class="panel-card invoices-panel">
   <form [formGroup]="filtersForm" class="filters" (ngSubmit)="search()">
     <mat-form-field appearance="outline">
       <mat-label>من تاريخ</mat-label>
@@ -34,7 +34,7 @@
     </mat-form-field>
     <mat-form-field appearance="outline">
       <mat-label>رقم الفاتورة</mat-label>
-      <input matInput formControlName="invoiceNumber" placeholder="INV-000001" />
+      <input matInput formControlName="invoiceNumber" placeholder="INV-1" />
     </mat-form-field>
     <div class="filter-actions">
       <button class="btn-primary" type="submit">بحث</button>
@@ -49,64 +49,89 @@
   } @else if (invoices().length === 0) {
     <div class="empty-state">لا توجد فواتير في هذه الفترة</div>
   } @else {
-    <div class="invoice-list">
-      @for (inv of invoices(); track inv.id) {
-        <article class="invoice-card" [class.expanded]="expandedId() === inv.id">
-          <div class="invoice-head">
-            <button type="button" class="invoice-toggle" (click)="toggleExpand(inv.id)">
-              <div class="invoice-meta">
-                <span class="inv-number">{{ inv.invoiceNumber }}</span>
-                <span class="inv-date">{{ inv.saleDate | date:'dd/MM/yyyy HH:mm' }}</span>
+    <div class="table-wrap">
+      <table class="data-table invoices-table">
+        <thead>
+          <tr>
+            <th>الفاتورة</th>
+            <th>العميل</th>
+            <th>التاريخ</th>
+            <th>الأصناف</th>
+            <th>الإجمالي</th>
+            <th>الحالة</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (inv of invoices(); track inv.id) {
+            <tr class="invoice-row" [class.expanded]="expandedId() === inv.id">
+              <td>
+                <button type="button" class="link-btn inv-link" (click)="toggleExpand(inv.id)">
+                  {{ inv.invoiceNumber }}
+                </button>
+              </td>
+              <td>
                 @if (inv.customerName) {
-                  <span class="inv-customer">{{ inv.customerName }} — {{ inv.customerPhone }}</span>
+                  {{ inv.customerName }}
+                  <br /><small class="muted">{{ inv.customerPhone }}</small>
+                } @else {
+                  <span class="muted">—</span>
                 }
+              </td>
+              <td>{{ inv.saleDate | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ inv.itemCount }}</td>
+              <td class="amount money-value">{{ inv.grandTotal | number:'1.2-2' }} ج.م</td>
+              <td>
                 @if (inv.isDeferredPayment) {
                   <span class="badge-gold">دفع آجل</span>
+                } @else {
+                  <span class="badge-success">مدفوعة</span>
                 }
-              </div>
-              <div class="invoice-summary">
-                <span class="item-count">{{ inv.itemCount }} أصناف</span>
-                <strong>{{ inv.grandTotal | number:'1.2-2' }} ج.م</strong>
-                <span class="chevron">{{ expandedId() === inv.id ? '▲' : '▼' }}</span>
-              </div>
-            </button>
-            <div class="invoice-actions">
-              <button type="button" class="btn-secondary small" (click)="editInvoice(inv)">تعديل</button>
-              <button type="button" class="btn-secondary small danger" (click)="deleteInvoice(inv)">حذف</button>
-            </div>
-          </div>
-
-          @if (expandedId() === inv.id) {
-            <div class="invoice-body">
-              <div class="totals-mini">
-                <span>المجموع: {{ inv.subtotal | number:'1.2-2' }}</span>
-              </div>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>الصنف</th>
-                    <th>الكمية</th>
-                    <th>السعر</th>
-                    <th>الإجمالي</th>
-                    <th>ملاحظات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (line of inv.items; track line.productName + line.unitPrice) {
-                    <tr>
-                      <td>{{ line.productName }}</td>
-                      <td>{{ line.quantity }}</td>
-                      <td>{{ line.unitPrice | number:'1.2-2' }}</td>
-                      <td class="amount">{{ line.lineTotal | number:'1.2-2' }}</td>
-                      <td class="muted">{{ line.notes || '—' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
+              </td>
+              <td class="actions-cell">
+                <button type="button" class="btn-secondary small" (click)="toggleExpand(inv.id)">
+                  {{ expandedId() === inv.id ? 'إخفاء' : 'تفاصيل' }}
+                </button>
+                <button type="button" class="btn-secondary small" (click)="editInvoice(inv, $event)">تعديل</button>
+                <button type="button" class="btn-secondary small danger" (click)="deleteInvoice(inv, $event)">حذف</button>
+              </td>
+            </tr>
+            @if (expandedId() === inv.id) {
+              <tr class="detail-row">
+                <td colspan="7">
+                  <div class="invoice-detail">
+                    <div class="totals-mini">
+                      <span>المجموع: <span class="money-value">{{ inv.subtotal | number:'1.2-2' }} ج.م</span></span>
+                    </div>
+                    <table class="data-table lines-table">
+                      <thead>
+                        <tr>
+                          <th>الصنف</th>
+                          <th>الكمية</th>
+                          <th>السعر</th>
+                          <th>الإجمالي</th>
+                          <th>ملاحظات</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (line of inv.items; track line.productName + line.unitPrice) {
+                          <tr>
+                            <td>{{ line.productName }}</td>
+                            <td>{{ line.quantity }}</td>
+                            <td class="money-value">{{ line.unitPrice | number:'1.2-2' }} ج.م</td>
+                            <td class="amount money-value">{{ line.lineTotal | number:'1.2-2' }} ج.م</td>
+                            <td class="muted">{{ line.notes || '—' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            }
           }
-        </article>
-      }
+        </tbody>
+      </table>
     </div>
   }
 

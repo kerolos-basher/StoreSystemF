@@ -1,4 +1,4 @@
-import { CurrencyPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, Inject, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -15,7 +15,8 @@ interface EditableItem extends SalesInvoiceItem {
 @Component({
   selector: 'app-edit-invoice-modal',
   standalone: true,
-  imports: [MatDialogModule, MatSnackBarModule, MatCheckboxModule, FormsModule, CurrencyPipe],
+  providers: [SalesInvoicesListService],
+  imports: [MatDialogModule, MatSnackBarModule, MatCheckboxModule, FormsModule, DecimalPipe],
   templateUrl: './edit-invoice-modal.component.html',
   styleUrl: './edit-invoice-modal.component.scss'
 })

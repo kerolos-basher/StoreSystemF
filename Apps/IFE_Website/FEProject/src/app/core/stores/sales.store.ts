@@ -10,12 +10,17 @@ export class SalesStore {
   readonly customerPhone = signal('');
   readonly customerId = signal<number | null>(null);
   readonly isDeferredPayment = signal(false);
+  readonly amountPaid = signal(0);
 
   readonly subtotal = computed(() =>
     this.items().reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
   );
 
   readonly grandTotal = computed(() => this.subtotal());
+
+  readonly remainingAmount = computed(() =>
+    Math.max(0, this.grandTotal() - this.amountPaid())
+  );
 
   readonly itemCount = computed(() =>
     this.items().reduce((sum, item) => sum + item.quantity, 0)
@@ -92,5 +97,6 @@ export class SalesStore {
     this.customerPhone.set('');
     this.customerId.set(null);
     this.isDeferredPayment.set(false);
+    this.amountPaid.set(0);
   }
 }

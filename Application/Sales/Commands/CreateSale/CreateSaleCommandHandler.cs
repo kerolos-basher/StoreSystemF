@@ -80,13 +80,25 @@ public sealed class CreateSaleCommandHandler(
             if (!customerId.HasValue)
                 throw new Exception("يجب تحديد عميل للدفع الآجل.");
 
+            if (request.AmountPaid > invoice.GrandTotal)
+                throw new Exception($"المبلغ المدفوع ({request.AmountPaid}) أكبر من إجمالي الفاتورة ({invoice.GrandTotal}).");
+
             var deferredPaymentId = await sequenceService.GetNextValueAsync(SequenceKeys.DeferredPaymentSequence, cancellationToken);
-            context.DeferredPayment.Add(DeferredPayment.Create(
+            var deferredPayment = DeferredPayment.Create(
                 deferredPaymentId,
                 invoice.Id,
                 customerId.Value,
                 invoice.GrandTotal,
-                request.Notes));
+                request.Notes);
+            context.DeferredPayment.Add(deferredPayment);
+
+            if (request.AmountPaid > 0)
+            {
+                var transactionId = await sequenceService.GetNextValueAsync(
+                    SequenceKeys.DeferredPaymentTransactionSequence,
+                    cancellationToken);
+                deferredPayment.RegisterPayment(transactionId, request.AmountPaid, "دفعة عند البيع", 0);
+            }
         }
 
         foreach (var draft in transactionDrafts)

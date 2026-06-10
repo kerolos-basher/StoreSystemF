@@ -67,9 +67,9 @@
             <td>{{ p.invoiceNumber }}</td>
             <td>{{ p.customerName }}<br /><small class="muted">{{ p.customerPhone }}</small></td>
             <td>{{ p.invoiceDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ p.totalAmount | number:'1.2-2' }}</td>
-            <td>{{ p.paidAmount | number:'1.2-2' }}</td>
-            <td class="gold">{{ p.remainingAmount | number:'1.2-2' }}</td>
+            <td class="money-value">{{ p.totalAmount | number:'1.2-2' }} ج.م</td>
+            <td class="money-value">{{ p.paidAmount | number:'1.2-2' }} ج.م</td>
+            <td class="gold money-value">{{ p.remainingAmount | number:'1.2-2' }} ج.م</td>
             <td>
               @if (p.isFullyPaid) {
                 <span class="badge-success">مسددة</span>

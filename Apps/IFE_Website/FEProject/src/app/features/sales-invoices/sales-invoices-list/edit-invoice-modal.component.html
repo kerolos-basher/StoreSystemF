@@ -18,7 +18,7 @@
         <strong>{{ item.productName }}</strong>
         <label>الكمية <input type="number" min="1" [(ngModel)]="item.quantity" /></label>
         <label>السعر <input type="number" min="0" step="0.01" [(ngModel)]="item.unitPrice" /></label>
-        <span>{{ item.quantity * item.unitPrice | currency:'EGP':'symbol':'1.2-2' }}</span>
+        <span class="money-value">{{ item.quantity * item.unitPrice | number:'1.2-2' }} ج.م</span>
       </article>
     }
   </div>

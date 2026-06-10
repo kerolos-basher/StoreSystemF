@@ -157,10 +157,11 @@ export class InventoryApiService {
     customerPhone: string,
     customerId: number | null,
     notes: string,
-    isDeferredPayment: boolean
+    isDeferredPayment: boolean,
+    amountPaid: number
   ): Observable<CreateSaleResult> {
     return this.http.post<CreateSaleResult>(`${this.baseUrl}/sales`, {
-      items, customerName, customerPhone, customerId, notes, isDeferredPayment
+      items, customerName, customerPhone, customerId, notes, isDeferredPayment, amountPaid
     });
   }
 

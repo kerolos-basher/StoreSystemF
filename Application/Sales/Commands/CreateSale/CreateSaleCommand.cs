@@ -8,4 +8,5 @@ public sealed record CreateSaleCommand(
     string? CustomerPhone,
     long? CustomerId,
     string Notes,
-    bool IsDeferredPayment) : ICommand<CreateSaleResultDto>;
+    bool IsDeferredPayment,
+    decimal AmountPaid) : ICommand<CreateSaleResultDto>;

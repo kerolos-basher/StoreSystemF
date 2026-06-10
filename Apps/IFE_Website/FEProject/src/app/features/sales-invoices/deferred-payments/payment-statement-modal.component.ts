@@ -8,6 +8,7 @@ import { PaymentStatementModalData } from './payment-statement-modal.interfaces'
 @Component({
   selector: 'app-payment-statement-modal',
   standalone: true,
+  providers: [DeferredPaymentsService],
   imports: [MatDialogModule, DatePipe, DecimalPipe],
   templateUrl: './payment-statement-modal.component.html',
   styleUrl: './payment-statement-modal.component.scss'

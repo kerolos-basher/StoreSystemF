@@ -1,5 +1,18 @@
 <div class="scanner-wrap">
-  <div id="barcode-scanner-region"></div>
+  @if (!active()) {
+    <div class="scanner-idle">
+      <p>اضغط لتشغيل الكاميرا ومسح رمز QR</p>
+      <button type="button" class="btn-secondary" (click)="startCamera()" [disabled]="starting()">
+        {{ starting() ? 'جاري التشغيل...' : 'تشغيل الكاميرا' }}
+      </button>
+    </div>
+  } @else {
+    <div class="scanner-live">
+      <div [id]="regionId"></div>
+      <button type="button" class="btn-secondary scanner-stop" (click)="stopCamera()">إيقاف الكاميرا</button>
+    </div>
+  }
+
   @if (error()) {
     <p class="scanner-error">{{ error() }}</p>
   }
