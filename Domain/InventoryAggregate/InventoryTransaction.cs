@@ -15,7 +15,30 @@ public sealed class InventoryTransaction : ParentEntity
     {
     }
 
+    private InventoryTransaction(
+        long id,
+        long productId,
+        long? productDetailsId,
+        long? salesInvoiceId,
+        long? returnInvoiceId,
+        int quantityChange,
+        InventoryTransactionType transactionType,
+        string reference)
+    {
+        EnsureValidId(id);
+        Id = id;
+        ProductId = productId;
+        ProductDetailsId = productDetailsId;
+        SalesInvoiceId = salesInvoiceId;
+        ReturnInvoiceId = returnInvoiceId;
+        QuantityChange = quantityChange;
+        TransactionType = transactionType;
+        TransactionDate = DateTime.UtcNow;
+        Reference = reference;
+    }
+
     public static InventoryTransaction CreateSale(
+        long id,
         long productId,
         long productDetailsId,
         long salesInvoiceId,
@@ -25,19 +48,19 @@ public sealed class InventoryTransaction : ParentEntity
         if (quantity <= 0)
             throw new Exception("الكمية يجب أن تكون أكبر من صفر.");
 
-        return new InventoryTransaction
-        {
-            ProductId = productId,
-            ProductDetailsId = productDetailsId,
-            SalesInvoiceId = salesInvoiceId,
-            QuantityChange = -quantity,
-            TransactionType = InventoryTransactionType.Sale,
-            TransactionDate = DateTime.UtcNow,
-            Reference = reference
-        };
+        return new InventoryTransaction(
+            id,
+            productId,
+            productDetailsId,
+            salesInvoiceId,
+            null,
+            -quantity,
+            InventoryTransactionType.Sale,
+            reference);
     }
 
     public static InventoryTransaction CreatePurchase(
+        long id,
         long productId,
         long productDetailsId,
         int quantity,
@@ -46,18 +69,19 @@ public sealed class InventoryTransaction : ParentEntity
         if (quantity <= 0)
             throw new Exception("الكمية يجب أن تكون أكبر من صفر.");
 
-        return new InventoryTransaction
-        {
-            ProductId = productId,
-            ProductDetailsId = productDetailsId,
-            QuantityChange = quantity,
-            TransactionType = InventoryTransactionType.Purchase,
-            TransactionDate = DateTime.UtcNow,
-            Reference = reference
-        };
+        return new InventoryTransaction(
+            id,
+            productId,
+            productDetailsId,
+            null,
+            null,
+            quantity,
+            InventoryTransactionType.Purchase,
+            reference);
     }
 
     public static InventoryTransaction CreateCustomerReturn(
+        long id,
         long productId,
         long productDetailsId,
         long returnInvoiceId,
@@ -67,33 +91,52 @@ public sealed class InventoryTransaction : ParentEntity
         if (quantity <= 0)
             throw new Exception("الكمية يجب أن تكون أكبر من صفر.");
 
-        return new InventoryTransaction
-        {
-            ProductId = productId,
-            ProductDetailsId = productDetailsId,
-            ReturnInvoiceId = returnInvoiceId,
-            QuantityChange = quantity,
-            TransactionType = InventoryTransactionType.CustomerReturn,
-            TransactionDate = DateTime.UtcNow,
-            Reference = reference
-        };
+        return new InventoryTransaction(
+            id,
+            productId,
+            productDetailsId,
+            null,
+            returnInvoiceId,
+            quantity,
+            InventoryTransactionType.CustomerReturn,
+            reference);
     }
 
     public static InventoryTransaction CreateDamagedReturn(
+        long id,
         long productId,
         long productDetailsId,
         long returnInvoiceId,
+        string reference) =>
+        new(
+            id,
+            productId,
+            productDetailsId,
+            null,
+            returnInvoiceId,
+            0,
+            InventoryTransactionType.Damaged,
+            reference);
+
+    public static InventoryTransaction CreateSaleReversal(
+        long id,
+        long productId,
+        long productDetailsId,
+        long salesInvoiceId,
+        int quantity,
         string reference)
     {
-        return new InventoryTransaction
-        {
-            ProductId = productId,
-            ProductDetailsId = productDetailsId,
-            ReturnInvoiceId = returnInvoiceId,
-            QuantityChange = 0,
-            TransactionType = InventoryTransactionType.Damaged,
-            TransactionDate = DateTime.UtcNow,
-            Reference = reference
-        };
+        if (quantity <= 0)
+            throw new Exception("الكمية يجب أن تكون أكبر من صفر.");
+
+        return new InventoryTransaction(
+            id,
+            productId,
+            productDetailsId,
+            salesInvoiceId,
+            null,
+            quantity,
+            InventoryTransactionType.SaleReversal,
+            reference);
     }
 }

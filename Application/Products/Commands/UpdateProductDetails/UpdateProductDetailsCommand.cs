@@ -7,4 +7,5 @@ public sealed record UpdateProductDetailsCommand(
     long? CategoryId,
     decimal PurchasePrice,
     decimal SellingPrice,
+    int Quantity,
     string Notes) : ICommand;

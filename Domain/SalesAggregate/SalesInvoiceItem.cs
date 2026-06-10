@@ -1,3 +1,5 @@
+using Domain.Events;
+
 namespace Domain.SalesAggregate;
 
 public sealed class SalesInvoiceItem : ParentEntity
@@ -17,7 +19,8 @@ public sealed class SalesInvoiceItem : ParentEntity
     {
     }
 
-    internal SalesInvoiceItem(
+    private SalesInvoiceItem(
+        long id,
         long salesInvoiceId,
         long productId,
         long productDetailsId,
@@ -26,6 +29,8 @@ public sealed class SalesInvoiceItem : ParentEntity
         decimal unitPrice,
         string notes)
     {
+        EnsureValidId(id);
+        Id = id;
         SalesInvoiceId = salesInvoiceId;
         ProductId = productId;
         ProductDetailsId = productDetailsId;
@@ -35,6 +40,17 @@ public sealed class SalesInvoiceItem : ParentEntity
         UnitPrice = unitPrice;
         Notes = notes?.Trim() ?? string.Empty;
     }
+
+    internal static SalesInvoiceItem Create(
+        long id,
+        long salesInvoiceId,
+        long productId,
+        long productDetailsId,
+        string productName,
+        int quantity,
+        decimal unitPrice,
+        string notes) =>
+        new(id, salesInvoiceId, productId, productDetailsId, productName, quantity, unitPrice, notes);
 
     internal void IncreaseQuantity(int quantity)
     {
@@ -50,8 +66,33 @@ public sealed class SalesInvoiceItem : ParentEntity
             throw new Exception("الكمية غير صالحة.");
 
         if (quantity > AvailableForReturn)
-            throw new Exception("الكمية المرتجعة تتجاوز الكمية المتاحة للإرجاع.");
+            throw new Exception($"لا يمكن إرجاع أكثر من {AvailableForReturn} قطعة");
 
         ReturnedQuantity += quantity;
+        AddDomainEvent(new ItemReturnedDomainEvent(Id, quantity));
+    }
+
+    public void UpdateQuantity(int newQuantity)
+    {
+        if (newQuantity <= 0)
+            throw new Exception("الكمية يجب أن تكون أكبر من صفر.");
+
+        if (newQuantity < ReturnedQuantity)
+            throw new Exception("لا يمكن تقليل الكمية أقل من المرتجع.");
+
+        Quantity = newQuantity;
+    }
+
+    public void UpdateUnitPrice(decimal unitPrice)
+    {
+        if (unitPrice <= 0)
+            throw new Exception("سعر الوحدة يجب أن يكون أكبر من صفر.");
+
+        UnitPrice = unitPrice;
+    }
+
+    public void SoftDelete()
+    {
+        IsDeleted = true;
     }
 }

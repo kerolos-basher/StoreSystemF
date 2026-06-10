@@ -4,7 +4,9 @@ using Domain.CategoryAggregate;
 
 namespace Application.Categories.Commands.CreateCategory;
 
-public sealed class CreateCategoryCommandHandler(IApplicationDbContext context)
+public sealed class CreateCategoryCommandHandler(
+    IApplicationDbContext context,
+    ISequenceService sequenceService)
     : ICommandHandler<CreateCategoryCommand, CategoryLookupDto>
 {
     public async Task<CategoryLookupDto> Handle(
@@ -18,7 +20,8 @@ public sealed class CreateCategoryCommandHandler(IApplicationDbContext context)
         if (existing is not null)
             return new CategoryLookupDto(existing.Id, existing.Name);
 
-        var category = Category.Create(request.Name.Trim());
+        var id = await sequenceService.GetNextValueAsync(SequenceKeys.CategorySequence, cancellationToken);
+        var category = Category.Create(id, request.Name.Trim());
         context.Category.Add(category);
         await context.SaveChangesAsync();
 

@@ -17,7 +17,8 @@ public sealed class ReturnInvoiceItem : ParentEntity
     {
     }
 
-    internal ReturnInvoiceItem(
+    private ReturnInvoiceItem(
+        long id,
         long returnInvoiceId,
         long salesInvoiceItemId,
         long productId,
@@ -28,6 +29,8 @@ public sealed class ReturnInvoiceItem : ParentEntity
         bool isReturnToStock,
         string notes)
     {
+        EnsureValidId(id);
+        Id = id;
         ReturnInvoiceId = returnInvoiceId;
         SalesInvoiceItemId = salesInvoiceItemId;
         ProductId = productId;
@@ -38,4 +41,17 @@ public sealed class ReturnInvoiceItem : ParentEntity
         IsReturnToStock = isReturnToStock;
         Notes = notes?.Trim() ?? string.Empty;
     }
+
+    internal static ReturnInvoiceItem Create(
+        long id,
+        long returnInvoiceId,
+        long salesInvoiceItemId,
+        long productId,
+        long productDetailsId,
+        int quantity,
+        decimal unitPrice,
+        int itemReasonType,
+        bool isReturnToStock,
+        string notes) =>
+        new(id, returnInvoiceId, salesInvoiceItemId, productId, productDetailsId, quantity, unitPrice, itemReasonType, isReturnToStock, notes);
 }

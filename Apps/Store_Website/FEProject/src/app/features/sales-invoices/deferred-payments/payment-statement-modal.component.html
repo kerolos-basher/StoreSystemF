@@ -1,0 +1,35 @@
+<h2 mat-dialog-title>كشف حساب — {{ payment().customerName }}</h2>
+<mat-dialog-content>
+  @if (loading()) {
+    <div class="skeleton" style="height:120px"></div>
+  } @else if (statement()) {
+    <div class="summary">
+      <p><strong>الفاتورة:</strong> {{ statement()!.invoiceNumber }}</p>
+      <p><strong>الإجمالي:</strong> {{ statement()!.totalAmount | number:'1.2-2' }} ج.م</p>
+      <p><strong>المدفوع:</strong> <span class="gold">{{ statement()!.paidAmount | number:'1.2-2' }} ج.م</span></p>
+      <p><strong>المتبقي:</strong> <span class="danger">{{ statement()!.remainingAmount | number:'1.2-2' }} ج.م</span></p>
+    </div>
+    <h3>سجل الدفعات</h3>
+    @if (statement()!.transactions.length === 0) {
+      <p class="muted">لا توجد دفعات مسجلة بعد</p>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr><th>التاريخ</th><th>المبلغ</th><th>ملاحظات</th></tr>
+        </thead>
+        <tbody>
+          @for (t of statement()!.transactions; track t.id) {
+            <tr>
+              <td>{{ t.paymentDate | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="gold">{{ t.amountPaid | number:'1.2-2' }}</td>
+              <td>{{ t.notes || '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button type="button" class="btn-secondary" mat-dialog-close>إغلاق</button>
+</mat-dialog-actions>

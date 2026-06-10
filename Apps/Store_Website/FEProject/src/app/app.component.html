@@ -1,0 +1,89 @@
+<div class="app-shell">
+  @if (loading.loading()) {
+    <mat-progress-bar mode="indeterminate" class="top-loader"></mat-progress-bar>
+  }
+
+  @if (sidebarOpen()) {
+    <button type="button" class="sidebar-backdrop" aria-label="إغلاق القائمة" (click)="closeSidebar()"></button>
+  }
+
+  <aside
+    class="sidebar"
+    [class.sidebar-open]="sidebarOpen()"
+    [class.sidebar-collapsed]="sidebarCollapsed()"
+  >
+    <div class="sidebar-header">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor" opacity="0.9"/>
+            <rect x="13" y="3" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="3" y="13" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor" opacity="0.5"/>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <span class="brand-title">المخزون</span>
+          <span class="brand-sub">نظام إدارة المخزون والمبيعات</span>
+        </div>
+      </div>
+      <button type="button" class="sidebar-close" (click)="closeSidebar()" aria-label="إغلاق">×</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.path) {
+        @if ($first || navItems[$index - 1].section !== item.section) {
+          <p class="nav-section">{{ item.section }}</p>
+        }
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="nav-active"
+          class="nav-item"
+          [attr.title]="item.label"
+          (click)="closeSidebar()"
+        >
+          <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <p class="footer-text">المخزون v1.0</p>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="app-topbar">
+      <div class="topbar-start">
+        <button type="button" class="menu-btn mobile-only" (click)="toggleSidebar()" aria-label="فتح القائمة">
+          <span></span><span></span><span></span>
+        </button>
+        <button
+          type="button"
+          class="collapse-btn desktop-only"
+          (click)="toggleSidebarCollapse()"
+          [attr.aria-label]="sidebarCollapsed() ? 'توسيع القائمة' : 'طي القائمة'"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7h16M4 12h10M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="topbar-title">
+          <span class="topbar-eyebrow">لوحة التحكم</span>
+          <span class="topbar-heading">نظام إدارة المخزون</span>
+        </div>
+      </div>
+      <div class="topbar-end">
+        <span class="status-pill">
+          <span class="status-dot"></span>
+          متصل
+        </span>
+      </div>
+    </header>
+
+    <main class="page-container">
+      <router-outlet />
+    </main>
+  </div>
+</div>

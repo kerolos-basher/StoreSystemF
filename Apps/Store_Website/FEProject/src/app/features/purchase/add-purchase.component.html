@@ -1,0 +1,94 @@
+<div class="panel-card">
+  <header class="page-header">
+    <h1>إضافة صنف وتسجيل شراء</h1>
+    <p>أنشئ صنفاً جديداً أو أضف شراءً لصنف موجود</p>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="purchase-form">
+    <div class="field-row">
+      <mat-form-field appearance="outline">
+        <mat-label>اسم الصنف</mat-label>
+        <input matInput formControlName="productName" [matAutocomplete]="productAuto" (input)="onProductInput()" />
+        <mat-autocomplete #productAuto="matAutocomplete" (optionSelected)="selectProduct($event.option.value)">
+          @for (p of filteredProducts$ | async; track p.id) {
+            <mat-option [value]="p">{{ p.productName }}</mat-option>
+          }
+        </mat-autocomplete>
+        @if (form.controls.productName.touched && form.controls.productName.invalid) {
+          <mat-error>اسم الصنف مطلوب</mat-error>
+        }
+      </mat-form-field>
+      @if (productId()) {
+        <span class="badge-gold">صنف موجود — سيتم إضافة دفعة جديدة</span>
+      } @else if ((form.controls.productName.value ?? '').length >= 2) {
+        <span class="badge-success">صنف جديد</span>
+      }
+    </div>
+
+    <div class="grid-2">
+      <mat-form-field appearance="outline">
+        <mat-label>الفئة</mat-label>
+        <mat-select formControlName="categoryId">
+          <mat-option value="">—</mat-option>
+          @for (c of categories(); track c.id) {
+            <mat-option [value]="c.id">{{ c.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>سعر الشراء</mat-label>
+        <input matInput type="number" formControlName="purchasePrice" />
+        @if (form.controls.purchasePrice.touched && form.controls.purchasePrice.invalid) {
+          <mat-error>سعر الشراء مطلوب</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="grid-2">
+      <mat-form-field appearance="outline">
+        <mat-label>السعر المقترح</mat-label>
+        <input matInput type="number" formControlName="suggestedSellingPrice" (blur)="onSuggestedPriceBlur()" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>الكمية</mat-label>
+        <input matInput type="number" formControlName="quantity" />
+      </mat-form-field>
+    </div>
+
+    <p class="hint">يتم إنشاء باركود لكل دفعة بناءً على السعر والتاريخ</p>
+
+    <div class="grid-2">
+      <mat-form-field appearance="outline">
+        <mat-label>تاريخ الشراء</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="purchaseDate" />
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>المورد</mat-label>
+        <input matInput formControlName="supplierName" [matAutocomplete]="supplierAuto" />
+        <mat-autocomplete #supplierAuto="matAutocomplete">
+          @for (s of filteredSuppliers$ | async; track s.id) {
+            <mat-option [value]="s.name">{{ s.name }}</mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>ملاحظات</mat-label>
+      <textarea matInput rows="3" formControlName="notes"></textarea>
+    </mat-form-field>
+
+    @if (previewBarcode()) {
+      <div class="barcode-preview">معاينة الباركود: <code>{{ previewBarcode() }}</code></div>
+    }
+
+    <button type="submit" class="btn-primary full-width" [disabled]="saving()">
+      {{ saving() ? 'جاري الحفظ...' : 'حفظ الشراء' }}
+    </button>
+  </form>
+</div>

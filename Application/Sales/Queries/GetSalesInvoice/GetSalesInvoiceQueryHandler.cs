@@ -16,17 +16,36 @@ public sealed class GetSalesInvoiceQueryHandler(IApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == request.InvoiceId, cancellationToken)
             ?? throw new Exception("الفاتورة غير موجودة.");
 
-        return new SalesInvoiceDto(
+        string? customerName = null;
+        string? customerPhone = null;
+        if (invoice.CustomerId.HasValue)
+        {
+            var customer = await context.Customer
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == invoice.CustomerId.Value, cancellationToken);
+            customerName = customer?.Name;
+            customerPhone = customer?.Phone;
+        }
+
+        return Map(invoice, customerName, customerPhone);
+    }
+
+    internal static SalesInvoiceDto Map(
+        Domain.SalesAggregate.SalesInvoice invoice,
+        string? customerName,
+        string? customerPhone) =>
+        new(
             invoice.Id,
             invoice.InvoiceNumber,
             invoice.SaleDate,
             invoice.CustomerId,
+            customerName,
+            customerPhone,
             invoice.Subtotal,
-            invoice.Discount,
-            invoice.Tax,
             invoice.GrandTotal,
             invoice.Notes,
-            invoice.Items.Select(x => new SalesInvoiceItemDto(
+            invoice.IsDeferredPayment,
+            invoice.Items.Where(x => !x.IsDeleted).Select(x => new SalesInvoiceItemDto(
                 x.Id,
                 x.ProductId,
                 x.ProductDetailsId,
@@ -37,5 +56,4 @@ public sealed class GetSalesInvoiceQueryHandler(IApplicationDbContext context)
                 x.UnitPrice,
                 x.LineTotal,
                 x.Notes)).ToList());
-    }
 }

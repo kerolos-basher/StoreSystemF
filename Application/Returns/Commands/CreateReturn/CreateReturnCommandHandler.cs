@@ -5,7 +5,9 @@ using Domain.ReturnsAggregate;
 
 namespace Application.Returns.Commands.CreateReturn;
 
-public sealed class CreateReturnCommandHandler(IApplicationDbContext context)
+public sealed class CreateReturnCommandHandler(
+    IApplicationDbContext context,
+    ISequenceService sequenceService)
     : ICommandHandler<CreateReturnCommand, CreateReturnResultDto>
 {
     public async Task<CreateReturnResultDto> Handle(
@@ -17,9 +19,9 @@ public sealed class CreateReturnCommandHandler(IApplicationDbContext context)
             .FirstOrDefaultAsync(x => x.Id == request.SalesInvoiceId, cancellationToken)
             ?? throw new Exception("الفاتورة غير موجودة.");
 
-        var returnNumber = $"RET-{Guid.NewGuid():N}";
+        var returnInvoiceId = await sequenceService.GetNextValueAsync(SequenceKeys.ReturnInvoiceSequence, cancellationToken);
         var returnInvoice = ReturnInvoice.Create(
-            returnNumber,
+            returnInvoiceId,
             request.SalesInvoiceId,
             request.ReturnReasonType,
             request.Notes ?? string.Empty);
@@ -39,7 +41,9 @@ public sealed class CreateReturnCommandHandler(IApplicationDbContext context)
 
             invoiceItem.RegisterReturn(line.Quantity);
 
+            var returnItemId = await sequenceService.GetNextValueAsync(SequenceKeys.ReturnInvoiceItemSequence, cancellationToken);
             returnInvoice.AddItem(
+                returnItemId,
                 invoiceItem.Id,
                 invoiceItem.ProductId,
                 invoiceItem.ProductDetailsId,
@@ -52,10 +56,11 @@ public sealed class CreateReturnCommandHandler(IApplicationDbContext context)
 
         returnInvoice.FinalizeReturn();
         context.ReturnInvoice.Add(returnInvoice);
-        await context.SaveChangesAsync();
 
         foreach (var item in returnInvoice.Items)
         {
+            var transactionId = await sequenceService.GetNextValueAsync(SequenceKeys.InventoryTransactionSequence, cancellationToken);
+
             if (item.IsReturnToStock)
             {
                 var product = await context.Product
@@ -67,20 +72,22 @@ public sealed class CreateReturnCommandHandler(IApplicationDbContext context)
 
                 context.InventoryTransaction.Add(
                     InventoryTransaction.CreateCustomerReturn(
+                        transactionId,
                         item.ProductId,
                         item.ProductDetailsId,
                         returnInvoice.Id,
                         item.Quantity,
-                        returnNumber));
+                        returnInvoice.ReturnNumber));
             }
             else
             {
                 context.InventoryTransaction.Add(
                     InventoryTransaction.CreateDamagedReturn(
+                        transactionId,
                         item.ProductId,
                         item.ProductDetailsId,
                         returnInvoice.Id,
-                        returnNumber));
+                        returnInvoice.ReturnNumber));
             }
         }
 

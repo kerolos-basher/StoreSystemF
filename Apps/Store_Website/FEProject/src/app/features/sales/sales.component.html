@@ -1,0 +1,80 @@
+<section class="sales-layout">
+  <div class="panel-card invoice-panel">
+    <h1>المبيعات</h1>
+
+    <form [formGroup]="customerForm" class="customer-form">
+      <mat-form-field appearance="outline">
+        <mat-label>اسم العميل</mat-label>
+        <input matInput formControlName="customerName" [matAutocomplete]="customerAuto" (input)="onCustomerNameChange()" />
+        <mat-autocomplete #customerAuto="matAutocomplete" [displayWith]="displayCustomer.bind(this)" (optionSelected)="selectCustomer($event.option.value)">
+          @for (c of filteredCustomers$ | async; track c.id) {
+            <mat-option [value]="c">{{ c.name }} — {{ c.phone }}</mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>هاتف العميل</mat-label>
+        <input matInput formControlName="customerPhone" (input)="onCustomerPhoneChange()" />
+      </mat-form-field>
+      <mat-checkbox formControlName="isDeferredPayment" (change)="onDeferredChange($event.checked)">
+        دفع آجل
+      </mat-checkbox>
+    </form>
+
+    @if (store.items().length === 0) {
+      <div class="empty-state">لا توجد أصناف — امسح منتجاً للبدء</div>
+    } @else {
+      <div class="invoice-lines">
+        @for (item of store.items(); track item.productDetailsId) {
+          <article class="line-card">
+            <div class="line-head">
+              <div>
+                <strong>{{ item.productName }}</strong>
+                <small class="barcode-hint barcode-cell" [title]="item.barcode">{{ item.barcode }}</small>
+                @if (item.supplierName) {
+                  <small class="supplier-hint">{{ item.supplierName }}</small>
+                }
+              </div>
+              <button type="button" class="remove-btn" (click)="store.removeItem(item.productDetailsId)">×</button>
+            </div>
+            <div class="line-controls">
+              <label>الكمية
+                <input type="number" min="1" [max]="item.maxQuantity" [value]="item.quantity"
+                  (input)="store.updateQuantity(item.productDetailsId, +$any($event.target).value)" />
+              </label>
+              <label>السعر المقترح
+                <input type="number" min="0" step="0.01" [value]="item.unitPrice"
+                  (input)="store.updateUnitPrice(item.productDetailsId, +$any($event.target).value)" />
+              </label>
+              <small class="hint-price">السعر المقترح: {{ item.suggestedPrice | number:'1.2-2' }} ج.م</small>
+              <span class="line-total">{{ item.unitPrice * item.quantity | currency:'EGP':'symbol':'1.2-2' }}</span>
+            </div>
+            <input class="form-input notes-input" placeholder="ملاحظات..."
+              [value]="item.notes" (input)="store.updateNotes(item.productDetailsId, $any($event.target).value)" />
+          </article>
+        }
+      </div>
+    }
+
+    <div class="totals">
+      <div class="total-row grand">
+        <span>الإجمالي</span>
+        <span class="gold">{{ store.grandTotal() | currency:'EGP':'symbol':'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <textarea class="form-input notes-area" placeholder="ملاحظات الفاتورة..."
+      [value]="store.notes()" (input)="store.notes.set($any($event.target).value)"></textarea>
+
+    <button class="btn-primary sale-btn" type="button"
+      [disabled]="store.items().length === 0 || completing()" (click)="completeSale()">
+      {{ completing() ? 'جاري الحفظ...' : 'تم البيع' }}
+    </button>
+  </div>
+
+  <div class="panel-card scan-panel">
+    <h2>الماسح الضوئي</h2>
+    <p>امسح رمز QR لإضافة المنتج للفاتورة</p>
+    <app-barcode-scanner (scanned)="onScan($event)" />
+  </div>
+</section>

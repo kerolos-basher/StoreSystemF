@@ -16,32 +16,38 @@ public sealed class ReturnInvoice : ParentEntity
     {
     }
 
-    public static ReturnInvoice Create(
-        string returnNumber,
+    private ReturnInvoice(
+        long id,
         long salesInvoiceId,
         int returnReasonType,
         string notes)
     {
-        if (string.IsNullOrWhiteSpace(returnNumber))
-            throw new Exception("رقم المرتجع مطلوب.");
+        EnsureValidId(id);
+        Id = id;
+        ReturnNumber = $"RET-{id}";
+        SalesInvoiceId = salesInvoiceId;
+        ReturnDate = DateTime.UtcNow;
+        ReturnReasonType = returnReasonType;
+        Notes = notes?.Trim() ?? string.Empty;
+    }
 
+    public static ReturnInvoice Create(
+        long id,
+        long salesInvoiceId,
+        int returnReasonType,
+        string notes)
+    {
         if (salesInvoiceId <= 0)
             throw new Exception("معرف الفاتورة غير صالح.");
 
         if (returnReasonType <= 0)
             throw new Exception("سبب المرتجع مطلوب.");
 
-        return new ReturnInvoice
-        {
-            ReturnNumber = returnNumber.Trim(),
-            SalesInvoiceId = salesInvoiceId,
-            ReturnDate = DateTime.UtcNow,
-            ReturnReasonType = returnReasonType,
-            Notes = notes?.Trim() ?? string.Empty
-        };
+        return new ReturnInvoice(id, salesInvoiceId, returnReasonType, notes);
     }
 
     public void AddItem(
+        long itemId,
         long salesInvoiceItemId,
         long productId,
         long productDetailsId,
@@ -57,7 +63,8 @@ public sealed class ReturnInvoice : ParentEntity
         if (unitPrice <= 0)
             throw new Exception("سعر الوحدة يجب أن يكون أكبر من صفر.");
 
-        _items.Add(new ReturnInvoiceItem(
+        _items.Add(ReturnInvoiceItem.Create(
+            itemId,
             Id,
             salesInvoiceItemId,
             productId,

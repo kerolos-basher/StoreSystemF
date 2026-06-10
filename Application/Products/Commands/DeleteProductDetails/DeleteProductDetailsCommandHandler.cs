@@ -12,7 +12,7 @@ public sealed class DeleteProductDetailsCommandHandler(IApplicationDbContext con
             .FirstOrDefaultAsync(p => p.Id == request.ProductId, cancellationToken)
             ?? throw new Exception("المنتج غير موجود.");
 
-        product.DeleteDetails(request.ProductDetailsId);
+        product.DeleteDetails(request.ProductDetailsId, request.ForceDelete);
         await context.SaveChangesAsync();
     }
 }

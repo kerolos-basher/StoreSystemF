@@ -8,15 +8,19 @@ public class Supplier : ParentEntity
     {
     }
 
-    public static Supplier Create(string name)
+    private Supplier(long id, string name)
+    {
+        EnsureValidId(id);
+        Id = id;
+        Name = name;
+    }
+
+    public static Supplier Create(long id, string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new Exception("اسم المورد مطلوب.");
 
-        return new Supplier
-        {
-            Name = name.Trim()
-        };
+        return new Supplier(id, name.Trim());
     }
 
     public void Update(string name)

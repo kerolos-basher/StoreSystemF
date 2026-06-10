@@ -9,11 +9,13 @@ public sealed class CreateSaleCommandValidator : AbstractValidator<CreateSaleCom
 
         RuleForEach(x => x.Items).ChildRules(item =>
         {
-            item.RuleFor(x => x.ProductId).NotEmpty().WithMessage("معرف المنتج مطلوب.");
+            item.RuleFor(x => x.ProductDetailsId).GreaterThan(0).WithMessage("معرف تفاصيل المنتج مطلوب.");
             item.RuleFor(x => x.Quantity).GreaterThan(0).WithMessage("الكمية يجب أن تكون أكبر من صفر.");
+            item.RuleFor(x => x.UnitPrice).GreaterThan(0).WithMessage("سعر الوحدة يجب أن يكون أكبر من صفر.");
         });
 
-        RuleFor(x => x.Discount).GreaterThanOrEqualTo(0).WithMessage("الخصم لا يمكن أن يكون سالباً.");
-        RuleFor(x => x.Tax).GreaterThanOrEqualTo(0).WithMessage("الضريبة لا يمكن أن تكون سالبة.");
+        RuleFor(x => x)
+            .Must(x => !x.IsDeferredPayment || !string.IsNullOrWhiteSpace(x.CustomerName))
+            .WithMessage("يجب تحديد اسم العميل للدفع الآجل.");
     }
 }

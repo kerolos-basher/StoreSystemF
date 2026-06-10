@@ -1,0 +1,139 @@
+<div class="stats-grid">
+  @if (loading() && products().length === 0) {
+    @for (i of [1,2,3]; track i) {
+      <article class="stat-card skeleton" style="height:52px"></article>
+    }
+  } @else {
+    <article class="stat-card">
+      <p class="stat-label">إجمالي الأصناف</p>
+      <p class="stat-value">{{ statistics().totalProducts }}</p>
+    </article>
+    <article class="stat-card">
+      <p class="stat-label">إجمالي الوحدات</p>
+      <p class="stat-value accent">{{ statistics().totalQuantity }}</p>
+    </article>
+    <article class="stat-card">
+      <p class="stat-label">قيمة المخزون</p>
+      <p class="stat-value">{{ statistics().inventoryValue | number:'1.2-2' }}</p>
+    </article>
+  }
+</div>
+
+<section class="panel-card inventory-panel">
+  <h2>المخزون</h2>
+
+  <form [formGroup]="filtersForm" class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>بحث بالاسم...</mat-label>
+      <input matInput formControlName="productName" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>بحث بالباركود...</mat-label>
+      <input matInput formControlName="barcode" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>كل الموردين</mat-label>
+      <mat-select formControlName="supplierId">
+        <mat-option value="">الكل</mat-option>
+        @for (supplier of suppliers(); track supplier.id) {
+          <mat-option [value]="supplier.id">{{ supplier.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>كل الفئات</mat-label>
+      <mat-select formControlName="categoryId">
+        <mat-option value="">الكل</mat-option>
+        @for (category of categories(); track category.id) {
+          <mat-option [value]="category.id">{{ category.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>أقل سعر</mat-label>
+      <input matInput type="number" formControlName="purchasePriceFrom" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>أعلى سعر</mat-label>
+      <input matInput type="number" formControlName="purchasePriceTo" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>أقل كمية</mat-label>
+      <input matInput type="number" formControlName="quantityFrom" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>أعلى كمية</mat-label>
+      <input matInput type="number" formControlName="quantityTo" />
+    </mat-form-field>
+  </form>
+
+  <div class="filters-footer">
+    <button type="button" class="link-btn" (click)="resetFilters()">إعادة تعيين الفلاتر</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th><button type="button" class="sort-btn" (click)="toggleSort('productName')">اسم الصنف {{ sortIcon('productName') }}</button></th>
+          <th><button type="button" class="sort-btn" (click)="toggleSort('currentQuantity')">الكمية {{ sortIcon('currentQuantity') }}</button></th>
+          <th><button type="button" class="sort-btn" (click)="toggleSort('latestPurchasePrice')">آخر شراء {{ sortIcon('latestPurchasePrice') }}</button></th>
+          <th><button type="button" class="sort-btn" (click)="toggleSort('sellingPrice')">سعر البيع {{ sortIcon('sellingPrice') }}</button></th>
+          <th>المورد</th>
+          <th>الفئة</th>
+          <th><button type="button" class="sort-btn" (click)="toggleSort('lastPurchaseDate')">آخر تاريخ شراء {{ sortIcon('lastPurchaseDate') }}</button></th>
+          <th>إجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading() && products().length === 0) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr><td colspan="8"><div class="skeleton" style="height:36px"></div></td></tr>
+          }
+        } @else if (products().length === 0) {
+          <tr><td colspan="8" class="empty">لا توجد أصناف</td></tr>
+        } @else {
+          @for (row of products(); track row.id) {
+            <tr class="clickable-row" (click)="openDetails(row)">
+              <td>
+                <span class="item-name">{{ row.productName }}</span>
+                @if (row.purchaseLineCount > 1) {
+                  <button type="button" class="batch-badge" (click)="openDetails(row); $event.stopPropagation()">
+                    {{ row.purchaseLineCount }} دفعات
+                  </button>
+                }
+              </td>
+              <td>{{ row.currentQuantity }}</td>
+              <td>
+                {{ row.latestPurchasePrice | currency:'EGP':'symbol':'1.2-2' }}
+                @if (row.purchaseLineCount > 1) { <span class="hint">آخر سعر</span> }
+              </td>
+              <td>{{ row.sellingPrice | currency:'EGP':'symbol':'1.2-2' }}</td>
+              <td>
+                {{ row.supplier || '—' }}
+                @if (row.supplierCount > 1) { <span class="hint">+{{ row.supplierCount - 1 }}</span> }
+              </td>
+              <td>{{ row.category || '—' }}</td>
+              <td>{{ row.lastPurchaseDate | date:'dd/MM/yyyy' }}</td>
+              <td (click)="$event.stopPropagation()">
+                <button mat-button type="button" [matMenuTriggerFor]="actionsMenu" (click)="selectRow(row, $event)">⋮</button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <mat-menu #actionsMenu="matMenu">
+    <button mat-menu-item type="button" (click)="onMenuDetails()">عرض التفاصيل / تعديل / QR</button>
+  </mat-menu>
+
+  <footer class="pagination">
+    <span>صفحة {{ pageNumber }} من {{ totalPages }}</span>
+    <div class="pagination-actions">
+      <button type="button" class="page-btn" [disabled]="pageNumber <= 1" (click)="previousPage()">السابق</button>
+      <button type="button" class="page-btn" [disabled]="pageNumber >= totalPages" (click)="nextPage()">التالي</button>
+    </div>
+  </footer>
+</section>

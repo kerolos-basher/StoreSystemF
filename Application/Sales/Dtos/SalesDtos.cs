@@ -6,9 +6,9 @@ public sealed record CreateSaleResultDto(
     decimal GrandTotal);
 
 public sealed record SaleLineRequestDto(
-    long ProductId,
-    long? ProductDetailsId,
+    long ProductDetailsId,
     int Quantity,
+    decimal UnitPrice,
     string Notes);
 
 public sealed record SalesInvoiceDto(
@@ -16,11 +16,12 @@ public sealed record SalesInvoiceDto(
     string InvoiceNumber,
     DateTime SaleDate,
     long? CustomerId,
+    string? CustomerName,
+    string? CustomerPhone,
     decimal Subtotal,
-    decimal Discount,
-    decimal Tax,
     decimal GrandTotal,
     string Notes,
+    bool IsDeferredPayment,
     IReadOnlyList<SalesInvoiceItemDto> Items);
 
 public sealed record SalesInvoiceItemDto(
@@ -39,9 +40,18 @@ public sealed record SalesInvoiceListItemDto(
     long Id,
     string InvoiceNumber,
     DateTime SaleDate,
+    long? CustomerId,
+    string? CustomerName,
+    string? CustomerPhone,
     decimal Subtotal,
-    decimal Discount,
-    decimal Tax,
     decimal GrandTotal,
+    bool IsDeferredPayment,
     int ItemCount,
     IReadOnlyList<SalesInvoiceItemDto> Items);
+
+public sealed record UpdateSalesInvoiceItemDto(
+    long? Id,
+    long ProductDetailsId,
+    int Quantity,
+    decimal UnitPrice,
+    string Notes);

@@ -1,0 +1,74 @@
+<section class="price-check-layout">
+  <div class="panel-card details-panel">
+    <header class="page-header">
+      <h1>فحص السعر</h1>
+      <p>ابحث بالباركود أو اسم الصنف</p>
+    </header>
+
+    <form [formGroup]="searchForm" class="search-form">
+      <mat-form-field appearance="outline">
+        <mat-label>الباركود</mat-label>
+        <input matInput formControlName="barcode" (keyup.enter)="lookupBarcode()" />
+      </mat-form-field>
+      <button type="button" class="btn-primary" (click)="lookupBarcode()">بحث</button>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>اسم الصنف</mat-label>
+        <input matInput formControlName="productName" [matAutocomplete]="productAuto" />
+        <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct.bind(this)" (optionSelected)="selectProduct($event.option.value)">
+          @for (item of filteredProducts$ | async; track item.productDetailsId) {
+            <mat-option [value]="item">
+              {{ item.productName }} — {{ item.supplierName }} ({{ item.suggestedSellingPrice | number:'1.2-2' }} ج.م)
+            </mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+    </form>
+
+    @if (loading()) {
+      <div class="result-card skeleton-card">
+        <div class="skeleton" style="height:24px;width:60%;margin-bottom:12px"></div>
+        <div class="skeleton" style="height:18px;width:40%"></div>
+      </div>
+    } @else if (result()) {
+      <article class="result-card">
+        <h2>{{ result()!.productName }}</h2>
+        <p class="barcode-cell" [title]="result()!.barcode">{{ result()!.barcode }}</p>
+        <div class="result-grid">
+          <div>
+            <span class="stat-label">السعر المقترح</span>
+            <strong class="suggested-price">{{ result()!.suggestedSellingPrice | number:'1.2-2' }} ج.م</strong>
+          </div>
+          <div>
+            <span class="stat-label">سعر الشراء</span>
+            <strong>{{ result()!.purchasePrice | number:'1.2-2' }} ج.م</strong>
+          </div>
+          <div>
+            <span class="stat-label">المورد</span>
+            <strong>{{ result()!.supplierName }}</strong>
+          </div>
+          <div>
+            <span class="stat-label">الفئة</span>
+            <strong>{{ result()!.categoryName }}</strong>
+          </div>
+          <div>
+            <span class="stat-label">الكمية المتاحة</span>
+            <strong>{{ result()!.remainingQuantity }}</strong>
+          </div>
+        </div>
+        @if (result()!.notes) {
+          <p class="notes">{{ result()!.notes }}</p>
+        }
+      </article>
+    } @else {
+      <div class="empty-state">لم يتم العثور على منتج — امسح الرمز أو ابحث بالاسم</div>
+    }
+  </div>
+
+  <div class="panel-card scanner-panel">
+    <h2>الماسح الضوئي</h2>
+    <div class="scanner-container">
+      <app-barcode-scanner (scanned)="onScan($event)" />
+    </div>
+  </div>
+</section>

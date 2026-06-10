@@ -1,0 +1,137 @@
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.page-hero {
+  margin-bottom: 0;
+}
+
+.page-eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.page-title {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-white);
+}
+
+.page-subtitle {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.inventory-panel {
+  .panel-head {
+    margin-bottom: var(--space-2);
+
+    h2 {
+      margin: 0 0 2px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--color-white);
+    }
+
+    p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.75rem;
+    }
+  }
+}
+
+.filters { margin-bottom: var(--space-2); }
+
+.filters-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 var(--space-2);
+}
+
+.sort-btn {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0;
+  transition: var(--transition-fast);
+
+  &:hover { color: var(--color-accent); }
+}
+
+.hint {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.clickable-row { cursor: pointer; }
+
+.item-name {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--color-white);
+}
+
+.qty-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 229, 255, 0.08);
+  color: #a5f3fc;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.price-cell {
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.row-action {
+  min-width: unset !important;
+  border-radius: 6px !important;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-color);
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.pagination-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+@media (max-width: 992px) {
+  .filters .col-4,
+  .filters .col-3 { grid-column: span 6; }
+}
+
+@media (max-width: 640px) {
+  .filters .col-4,
+  .filters .col-3 { grid-column: span 12; }
+}

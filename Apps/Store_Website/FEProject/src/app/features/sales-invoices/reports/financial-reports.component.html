@@ -1,0 +1,124 @@
+<section class="page-header panel-card">
+  <h1>التقارير المالية</h1>
+  <p>ملخص الأداء المالي للمتجر</p>
+</section>
+
+<section class="panel-card">
+  <div class="preset-filters">
+    <button type="button" class="btn-secondary" (click)="applyPreset('day')">اليوم</button>
+    <button type="button" class="btn-secondary" (click)="applyPreset('month')">هذا الشهر</button>
+    <button type="button" class="btn-secondary" (click)="applyPreset('year')">هذه السنة</button>
+  </div>
+
+  <form [formGroup]="filtersForm" class="filters" (ngSubmit)="loadReport()">
+    <mat-form-field appearance="outline">
+      <mat-label>من تاريخ</mat-label>
+      <input matInput [matDatepicker]="fromPicker" formControlName="dateFrom" />
+      <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+      <mat-datepicker #fromPicker></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>إلى تاريخ</mat-label>
+      <input matInput [matDatepicker]="toPicker" formControlName="dateTo" />
+      <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+      <mat-datepicker #toPicker></mat-datepicker>
+    </mat-form-field>
+    <div class="filter-actions">
+      <button class="btn-primary" type="submit">تحديث</button>
+      <button class="btn-secondary" type="button" (click)="resetFilters()">إعادة تعيين</button>
+    </div>
+  </form>
+
+  @if (loading()) {
+    <div class="stats-grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <article class="stat-card skeleton" style="height:52px"></article>
+      }
+    </div>
+  } @else if (report()) {
+    <div class="stats-grid">
+      <article class="stat-card">
+        <p class="stat-label">إجمالي المبيعات</p>
+        <p class="stat-value gold">{{ report()!.totalSales | number:'1.2-2' }}</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">تكلفة المشتريات</p>
+        <p class="stat-value">{{ report()!.totalPurchaseCost | number:'1.2-2' }}</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">صافي الربح</p>
+        <p class="stat-value white">{{ report()!.netProfit | number:'1.2-2' }}</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">مبيعات نقدية</p>
+        <p class="stat-value">{{ report()!.cashSales | number:'1.2-2' }}</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">مبيعات آجلة</p>
+        <p class="stat-value">{{ report()!.deferredSales | number:'1.2-2' }}</p>
+      </article>
+      <article class="stat-card">
+        <p class="stat-label">ديون مستحقة</p>
+        <p class="stat-value danger">{{ report()!.outstandingDebts | number:'1.2-2' }}</p>
+      </article>
+      <article class="stat-card wide">
+        <p class="stat-label">قيمة المخزون</p>
+        <p class="stat-value">{{ report()!.inventoryValue | number:'1.2-2' }}</p>
+      </article>
+    </div>
+
+    <div class="tables-row">
+      <section class="table-section">
+        <h3>أكثر الأصناف مبيعاً</h3>
+        @if (report()!.topProducts.length === 0) {
+          <p class="empty-hint">لا توجد بيانات</p>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>الصنف</th>
+                <th>الكمية</th>
+                <th>الإيراد</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of report()!.topProducts; track p.productName) {
+                <tr>
+                  <td>{{ p.productName }}</td>
+                  <td>{{ p.quantitySold }}</td>
+                  <td class="gold">{{ p.revenue | number:'1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+
+      <section class="table-section">
+        <h3>أفضل العملاء</h3>
+        @if (report()!.topCustomers.length === 0) {
+          <p class="empty-hint">لا توجد بيانات</p>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>العميل</th>
+                <th>الفواتير</th>
+                <th>الإجمالي</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of report()!.topCustomers; track c.customerName) {
+                <tr>
+                  <td>{{ c.customerName }}</td>
+                  <td>{{ c.invoiceCount }}</td>
+                  <td class="gold">{{ c.totalSpent | number:'1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+    </div>
+  }
+</section>

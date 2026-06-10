@@ -4,7 +4,9 @@ using Domain.LookupAggregate;
 
 namespace Application.ReturnReasons.Commands.CreateReturnReason;
 
-public sealed class CreateReturnReasonCommandHandler(IApplicationDbContext context)
+public sealed class CreateReturnReasonCommandHandler(
+    IApplicationDbContext context,
+    ISequenceService sequenceService)
     : ICommandHandler<CreateReturnReasonCommand, ReturnReasonLookupDto>
 {
     public async Task<ReturnReasonLookupDto> Handle(
@@ -18,7 +20,8 @@ public sealed class CreateReturnReasonCommandHandler(IApplicationDbContext conte
         if (existing is not null)
             return new ReturnReasonLookupDto(existing.Id, existing.Name, existing.IsReturnToStock);
 
-        var reason = ReturnReason.Create(request.Name.Trim(), request.IsReturnToStock);
+        var id = (int)await sequenceService.GetNextValueAsync(SequenceKeys.ReturnReasonSequence, cancellationToken);
+        var reason = ReturnReason.Create(id, request.Name.Trim(), request.IsReturnToStock);
         context.ReturnReason.Add(reason);
         await context.SaveChangesAsync();
 

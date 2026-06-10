@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>تعديل فاتورة {{ invoice().invoiceNumber }}</h2>
+<mat-dialog-content>
+  <div class="customer-readonly">
+    <p><strong>العميل:</strong> {{ invoice().customerName || '—' }}</p>
+    <p><strong>الهاتف:</strong> {{ invoice().customerPhone || '—' }}</p>
+  </div>
+  <label class="field">
+    <span>ملاحظات</span>
+    <textarea class="form-input" [(ngModel)]="notes"></textarea>
+  </label>
+  <label class="field checkbox">
+    <input type="checkbox" [(ngModel)]="isDeferredPayment" />
+    <span>دفع آجل</span>
+  </label>
+  <div class="items">
+    @for (item of items(); track item.id) {
+      <article class="item-row">
+        <strong>{{ item.productName }}</strong>
+        <label>الكمية <input type="number" min="1" [(ngModel)]="item.quantity" /></label>
+        <label>السعر <input type="number" min="0" step="0.01" [(ngModel)]="item.unitPrice" /></label>
+        <span>{{ item.quantity * item.unitPrice | currency:'EGP':'symbol':'1.2-2' }}</span>
+      </article>
+    }
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button type="button" class="btn-secondary" mat-dialog-close>إلغاء</button>
+  <button type="button" class="btn-primary" [disabled]="saving()" (click)="save()">
+    {{ saving() ? 'جاري الحفظ...' : 'حفظ' }}
+  </button>
+</mat-dialog-actions>

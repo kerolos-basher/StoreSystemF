@@ -1,4 +1,4 @@
-
+using Domain.Events;
 
 namespace Domain.ProductAggregate;
 
@@ -16,12 +16,16 @@ public sealed class Product : ParentEntity
     {
     }
 
-    private Product(string productName)
+    private Product(long id, string productName)
     {
+        EnsureValidId(id);
+        Id = id;
         ProductName = productName;
     }
 
     public static Product Create(
+        long id,
+        long productDetailsId,
         string productName,
         long? supplierId,
         long? categoryId,
@@ -34,9 +38,9 @@ public sealed class Product : ParentEntity
     {
         ValidateProduct(productName);
 
-        var product = new Product(productName.Trim());
-
+        var product = new Product(id, productName.Trim());
         product.AddOrUpdateDetails(
+            productDetailsId,
             supplierId,
             categoryId,
             purchasePrice,
@@ -50,6 +54,7 @@ public sealed class Product : ParentEntity
     }
 
     public void AddOrUpdateDetails(
+        long productDetailsId,
         long? supplierId,
         long? categoryId,
         decimal purchasePrice,
@@ -63,6 +68,7 @@ public sealed class Product : ParentEntity
             throw new Exception("Quantity must be greater than zero.");
 
         var existingDetails = _productDetails.FirstOrDefault(x =>
+            !x.IsDeleted &&
             x.SupplierId == supplierId &&
             x.CategoryId == categoryId &&
             x.Price == purchasePrice &&
@@ -74,7 +80,8 @@ public sealed class Product : ParentEntity
             return;
         }
 
-        var details = new ProductDetails(
+        _productDetails.Add(global::Domain.ProductAggregate.ProductDetails.Create(
+            productDetailsId,
             Id,
             supplierId,
             categoryId,
@@ -82,10 +89,8 @@ public sealed class Product : ParentEntity
             sellingPrice,
             quantity,
             notes,
-            barCode,
-            purchaseDate);
-
-        _productDetails.Add(details);
+            barCode ?? string.Empty,
+            purchaseDate));
     }
 
     public void Update(string productName)
@@ -95,27 +100,31 @@ public sealed class Product : ParentEntity
         MarkUpdated();
     }
 
-    public void SoftDelete()
+    public void Delete()
     {
-        if (_productDetails.Any(x => x.SoldQuantity > 0))
-            throw new Exception("لا يمكن حذف منتج له مبيعات.");
+        if (_productDetails.Any(pd => !pd.IsDeleted))
+            throw new Exception("لا يمكن حذف الصنف قبل حذف جميع الدفعات");
 
         IsDeleted = true;
+        AddDomainEvent(new ProductDeletedDomainEvent(Id));
         MarkUpdated();
     }
 
-    public void DeleteDetails(long detailsId)
+    public void SoftDelete() => Delete();
+
+    public void DeleteDetails(long detailsId, bool forceDelete = false)
     {
         var details = _productDetails
-            .FirstOrDefault(x => x.Id == detailsId);
+            .FirstOrDefault(x => x.Id == detailsId && !x.IsDeleted);
 
         if (details is null)
             throw new Exception("التفاصيل غير موجودة.");
 
-        if (details.SoldQuantity > 0)
-            throw new Exception("لا يمكن حذف التفاصيل لوجود مبيعات.");
+        if (details.RemainingQuantity > 0 && !forceDelete)
+            throw new Exception($"المتبقي من هذه الدفعة {details.RemainingQuantity} قطعة");
 
-        _productDetails.Remove(details);
+        details.SoftDelete();
+        AddDomainEvent(new InventoryRemovedDomainEvent(detailsId, details.RemainingQuantity));
     }
 
     public IReadOnlyList<StockAllocation> ReduceStockFifo(int quantity)

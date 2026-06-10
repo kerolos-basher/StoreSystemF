@@ -1,0 +1,97 @@
+<div class="details-modal">
+  <header class="modal-header">
+    <div>
+      <p class="eyebrow">تفاصيل الصنف</p>
+      @if (editingProduct()) {
+        <input class="form-input name-input" [(ngModel)]="productName" />
+        <div class="header-actions">
+          <button type="button" class="btn-primary small" (click)="saveProduct()">حفظ الاسم</button>
+          <button type="button" class="btn-secondary" (click)="editingProduct.set(false)">إلغاء</button>
+        </div>
+      } @else {
+        <h2 mat-dialog-title>{{ details().productName }}</h2>
+        <div class="header-actions">
+          <button type="button" class="btn-secondary" (click)="startEditProduct()">تعديل الاسم</button>
+          @if (canDeleteProduct) {
+            <button type="button" class="btn-secondary danger" (click)="deleteProduct()">حذف الصنف</button>
+          } @else {
+            <span class="badge-gold">لا يمكن حذف الصنف قبل حذف جميع الدفعات</span>
+          }
+        </div>
+      }
+    </div>
+    <button type="button" class="close-btn" (click)="close()" aria-label="إغلاق">×</button>
+  </header>
+
+  <mat-dialog-content>
+    <div class="summary-grid">
+      <article class="summary-card">
+        <span class="stat-label">إجمالي الكمية</span>
+        <strong class="stat-value white">{{ details().totalQuantity }}</strong>
+      </article>
+      <article class="summary-card">
+        <span class="stat-label">قيمة المخزون</span>
+        <strong class="stat-value gold">{{ details().inventoryValue | number:'1.2-2' }}</strong>
+      </article>
+      <article class="summary-card">
+        <span class="stat-label">دفعات الشراء</span>
+        <strong class="stat-value">{{ details().purchaseLineCount }}</strong>
+      </article>
+      <article class="summary-card">
+        <span class="stat-label">الموردون</span>
+        <strong class="stat-value">{{ details().supplierCount }}</strong>
+      </article>
+    </div>
+
+    <section class="lines-section">
+      <h3>دفعات الشراء — كل دفعة لها باركود وسعر بيع خاص</h3>
+      <div class="lines-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>الباركود</th>
+              <th>المورد</th>
+              <th>سعر الشراء</th>
+              <th>السعر المقترح</th>
+              <th>الكمية</th>
+              <th>المتبقي</th>
+              <th>التاريخ</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of details().lines; track line.id) {
+              <tr>
+                <td class="barcode-cell" [title]="line.barcode">{{ line.barcode }}</td>
+                <td>{{ line.supplier }}</td>
+                @if (editingLineId() === line.id) {
+                  <td><input type="number" class="form-input" [(ngModel)]="editPurchasePrice" /></td>
+                  <td><input type="number" class="form-input" [(ngModel)]="editSellingPrice" /></td>
+                  <td><input type="number" class="form-input" [(ngModel)]="editQuantity" /></td>
+                  <td colspan="1"><input class="form-input" [(ngModel)]="editNotes" placeholder="ملاحظات" /></td>
+                  <td>{{ line.purchaseDate | date:'dd/MM/yyyy' }}</td>
+                  <td class="actions">
+                    <button type="button" class="btn-primary small" (click)="saveLine(line.id)">حفظ</button>
+                    <button type="button" class="btn-secondary" (click)="editingLineId.set(null)">إلغاء</button>
+                  </td>
+                } @else {
+                  <td>{{ line.purchasePrice | currency:'EGP':'symbol':'1.2-2' }}</td>
+                  <td>{{ line.sellingPrice | currency:'EGP':'symbol':'1.2-2' }}</td>
+                  <td>{{ line.quantity }}</td>
+                  <td class="emph">{{ line.remainingQuantity }}</td>
+                  <td>{{ line.purchaseDate | date:'dd/MM/yyyy' }}</td>
+                  <td class="actions">
+                    <button type="button" class="btn-secondary small" (click)="openQr(line)">QR</button>
+                    <button type="button" class="btn-secondary small" (click)="startEditLine(line.id, line.purchasePrice, line.sellingPrice, line.quantity, line.notes)">تعديل</button>
+                    <button type="button" class="btn-secondary small danger" (click)="deleteLine(line.id)">حذف</button>
+                    <button type="button" class="btn-secondary small" (click)="deleteLine(line.id, true)">حذف إجباري</button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </mat-dialog-content>
+</div>

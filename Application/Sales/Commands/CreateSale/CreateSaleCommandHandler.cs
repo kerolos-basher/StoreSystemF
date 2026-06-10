@@ -1,76 +1,104 @@
 using Application.Abstractions.Persistence;
 using Application.Sales.Dtos;
+using Domain.CustomerAggregate;
+using Domain.DeferredPaymentAggregate;
 using Domain.InventoryAggregate;
 using Domain.SalesAggregate;
 
 namespace Application.Sales.Commands.CreateSale;
 
-public sealed class CreateSaleCommandHandler(IApplicationDbContext context)
+public sealed class CreateSaleCommandHandler(
+    IApplicationDbContext context,
+    ISequenceService sequenceService)
     : ICommandHandler<CreateSaleCommand, CreateSaleResultDto>
 {
     public async Task<CreateSaleResultDto> Handle(
         CreateSaleCommand request,
         CancellationToken cancellationToken)
     {
-        var invoiceNumber = $"INV-{Guid.NewGuid():N}";
-        var invoice = SalesInvoice.Create(
-            invoiceNumber,
-            request.Discount,
-            request.Tax,
-            request.Notes ?? string.Empty,
-            request.CustomerId);
+        long? customerId = request.CustomerId;
 
-        var transactionDrafts = new List<(long ProductId, long ProductDetailsId, int Quantity)>();
-
-        foreach (var line in request.Items)
+        if (!string.IsNullOrWhiteSpace(request.CustomerName))
         {
-            var product = await context.Product
-                .Include(p => p.ProductDetails)
-                .FirstOrDefaultAsync(p => p.Id == line.ProductId, cancellationToken);
-            if (product == null)
-                throw new Exception("المنتج غير موجود.");
-
-            if (product.IsDeleted)
-                throw new Exception("لا يمكن بيع منتج محذوف.");
-
-            IReadOnlyList<Domain.ProductAggregate.StockAllocation> allocations;
-
-            if (line.ProductDetailsId.HasValue)
+            if (customerId.HasValue)
             {
-                allocations = [product.ReduceStockFromDetails(line.ProductDetailsId.Value, line.Quantity)];
+                var existing = await context.Customer
+                    .FirstOrDefaultAsync(c => c.Id == customerId.Value, cancellationToken);
+                if (existing is not null)
+                    existing.Update(request.CustomerName, request.CustomerPhone);
             }
             else
             {
-                allocations = product.ReduceStockFifo(line.Quantity);
+                var newCustomerId = await sequenceService.GetNextValueAsync(SequenceKeys.CustomerSequence, cancellationToken);
+                var customer = Customer.Create(newCustomerId, request.CustomerName, request.CustomerPhone);
+                context.Customer.Add(customer);
+                await context.SaveChangesAsync();
+                customerId = customer.Id;
             }
+        }
 
-            foreach (var allocation in allocations)
-            {
-                invoice.AddItem(
-                    product.Id,
-                    allocation.ProductDetailsId,
-                    product.ProductName,
-                    allocation.Quantity,
-                    allocation.UnitPrice,
-                    line.Notes ?? string.Empty);
+        var invoiceId = await sequenceService.GetNextValueAsync(SequenceKeys.SalesInvoiceSequence, cancellationToken);
+        var invoice = SalesInvoice.Create(
+            invoiceId,
+            request.Notes ?? string.Empty,
+            customerId,
+            request.IsDeferredPayment);
 
-                transactionDrafts.Add((product.Id, allocation.ProductDetailsId, allocation.Quantity));
-            }
+        var transactionDrafts = new List<(long TransactionId, long ProductId, long ProductDetailsId, int Quantity)>();
+
+        foreach (var line in request.Items)
+        {
+            var details = await context.ProductDetails
+                .Include(pd => pd.Product)
+                .FirstOrDefaultAsync(pd => pd.Id == line.ProductDetailsId, cancellationToken)
+                ?? throw new Exception("تفاصيل المنتج غير موجودة.");
+
+            if (details.Product.IsDeleted)
+                throw new Exception("لا يمكن بيع منتج محذوف.");
+
+            details.DeductStock(line.Quantity);
+
+            var itemId = await sequenceService.GetNextValueAsync(SequenceKeys.SalesInvoiceItemSequence, cancellationToken);
+            invoice.AddItem(
+                itemId,
+                details.ProductId,
+                details.Id,
+                details.Product.ProductName,
+                line.Quantity,
+                line.UnitPrice,
+                line.Notes ?? string.Empty);
+
+            var transactionId = await sequenceService.GetNextValueAsync(SequenceKeys.InventoryTransactionSequence, cancellationToken);
+            transactionDrafts.Add((transactionId, details.ProductId, details.Id, line.Quantity));
         }
 
         invoice.FinalizeInvoice();
         context.SalesInvoice.Add(invoice);
-        await context.SaveChangesAsync();
+
+        if (request.IsDeferredPayment)
+        {
+            if (!customerId.HasValue)
+                throw new Exception("يجب تحديد عميل للدفع الآجل.");
+
+            var deferredPaymentId = await sequenceService.GetNextValueAsync(SequenceKeys.DeferredPaymentSequence, cancellationToken);
+            context.DeferredPayment.Add(DeferredPayment.Create(
+                deferredPaymentId,
+                invoice.Id,
+                customerId.Value,
+                invoice.GrandTotal,
+                request.Notes));
+        }
 
         foreach (var draft in transactionDrafts)
         {
             context.InventoryTransaction.Add(
                 InventoryTransaction.CreateSale(
+                    draft.TransactionId,
                     draft.ProductId,
                     draft.ProductDetailsId,
                     invoice.Id,
                     draft.Quantity,
-                    invoiceNumber));
+                    invoice.InvoiceNumber));
         }
 
         await context.SaveChangesAsync();

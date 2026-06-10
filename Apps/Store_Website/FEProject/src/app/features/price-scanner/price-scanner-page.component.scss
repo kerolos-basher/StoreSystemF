@@ -1,0 +1,51 @@
+.page-card {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.page-header p {
+  margin: 0 0 var(--space-2);
+}
+
+.manual-row {
+  display: flex;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.manual-row input {
+  flex: 1;
+}
+
+.result-card {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--border-radius-sm);
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
+}
+
+.result-card h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 0.95rem;
+  color: var(--color-white);
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.result-grid span {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.result-grid strong {
+  font-size: 1.05rem;
+  color: var(--color-accent);
+}
+
+.skeleton-card { min-height: 56px; }

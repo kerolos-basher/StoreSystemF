@@ -1,3 +1,5 @@
+using Domain.Events;
+
 namespace Domain.SalesAggregate;
 
 public sealed class SalesInvoice : ParentEntity
@@ -6,10 +8,9 @@ public sealed class SalesInvoice : ParentEntity
     public DateTime SaleDate { get; private set; }
     public long? CustomerId { get; private set; }
     public decimal Subtotal { get; private set; }
-    public decimal Discount { get; private set; }
-    public decimal Tax { get; private set; }
     public decimal GrandTotal { get; private set; }
     public string Notes { get; private set; } = string.Empty;
+    public bool IsDeferredPayment { get; private set; }
 
     private readonly List<SalesInvoiceItem> _items = new();
     public IReadOnlyCollection<SalesInvoiceItem> Items => _items.AsReadOnly();
@@ -18,34 +19,30 @@ public sealed class SalesInvoice : ParentEntity
     {
     }
 
-    public static SalesInvoice Create(
-        string invoiceNumber,
-        decimal discount,
-        decimal tax,
+    private SalesInvoice(
+        long id,
         string notes,
-        long? customerId = null)
+        long? customerId,
+        bool isDeferredPayment)
     {
-        if (string.IsNullOrWhiteSpace(invoiceNumber))
-            throw new Exception("رقم الفاتورة مطلوب.");
-
-        if (discount < 0)
-            throw new Exception("الخصم لا يمكن أن يكون سالباً.");
-
-        if (tax < 0)
-            throw new Exception("الضريبة لا يمكن أن تكون سالبة.");
-
-        return new SalesInvoice
-        {
-            InvoiceNumber = invoiceNumber.Trim(),
-            SaleDate = DateTime.UtcNow,
-            Discount = discount,
-            Tax = tax,
-            CustomerId = customerId,
-            Notes = notes?.Trim() ?? string.Empty
-        };
+        EnsureValidId(id);
+        Id = id;
+        InvoiceNumber = $"INV-{id}";
+        SaleDate = DateTime.UtcNow;
+        CustomerId = customerId;
+        Notes = notes?.Trim() ?? string.Empty;
+        IsDeferredPayment = isDeferredPayment;
     }
 
+    public static SalesInvoice Create(
+        long id,
+        string notes,
+        long? customerId = null,
+        bool isDeferredPayment = false) =>
+        new(id, notes, customerId, isDeferredPayment);
+
     public void AddItem(
+        long itemId,
         long productId,
         long productDetailsId,
         string productName,
@@ -60,6 +57,7 @@ public sealed class SalesInvoice : ParentEntity
             throw new Exception("سعر الوحدة يجب أن يكون أكبر من صفر.");
 
         var existing = _items.FirstOrDefault(x =>
+            !x.IsDeleted &&
             x.ProductId == productId &&
             x.ProductDetailsId == productDetailsId &&
             x.UnitPrice == unitPrice);
@@ -71,7 +69,8 @@ public sealed class SalesInvoice : ParentEntity
             return;
         }
 
-        _items.Add(new SalesInvoiceItem(
+        _items.Add(SalesInvoiceItem.Create(
+            itemId,
             Id,
             productId,
             productDetailsId,
@@ -91,9 +90,25 @@ public sealed class SalesInvoice : ParentEntity
         RecalculateTotals();
     }
 
+    public void UpdateNotes(string notes, bool isDeferredPayment)
+    {
+        Notes = notes?.Trim() ?? string.Empty;
+        IsDeferredPayment = isDeferredPayment;
+        MarkUpdated();
+    }
+
+    public void SoftDelete()
+    {
+        IsDeleted = true;
+        foreach (var item in _items)
+            item.SoftDelete();
+        AddDomainEvent(new InvoiceDeletedDomainEvent(Id));
+        MarkUpdated();
+    }
+
     private void RecalculateTotals()
     {
-        Subtotal = _items.Sum(x => x.LineTotal);
-        GrandTotal = Math.Max(0, Subtotal - Discount + Tax);
+        Subtotal = _items.Where(x => !x.IsDeleted).Sum(x => x.LineTotal);
+        GrandTotal = Subtotal;
     }
 }

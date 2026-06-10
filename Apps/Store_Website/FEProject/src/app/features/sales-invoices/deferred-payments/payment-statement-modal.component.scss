@@ -1,0 +1,21 @@
+.summary p { margin: 0.35rem 0; }
+
+.gold {
+  color: var(--color-gold);
+  font-weight: 700;
+}
+
+.danger {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+h3 {
+  margin: var(--space-2) 0 var(--space-1);
+  font-size: 0.88rem;
+  color: var(--color-white);
+}

@@ -1,0 +1,134 @@
+.filters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) auto;
+  gap: var(--space-2);
+  align-items: start;
+  margin-bottom: var(--space-2);
+}
+
+.filter-actions {
+  display: flex;
+  gap: var(--space-1);
+  padding-top: 2px;
+}
+
+.invoice-skeleton {
+  height: 52px;
+  margin-bottom: var(--space-2);
+}
+
+.invoice-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.invoice-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.12);
+  transition: var(--transition-fast);
+
+  &:hover {
+    border-color: rgba(0, 229, 255, 0.2);
+  }
+
+  &.expanded {
+    border-color: rgba(255, 59, 48, 0.35);
+  }
+}
+
+.invoice-head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: right;
+  color: var(--color-text);
+}
+
+.invoice-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inv-number {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-white);
+}
+
+.inv-date {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.invoice-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.item-count {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  background: rgba(0, 229, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.invoice-summary strong {
+  color: var(--color-accent);
+  font-size: 0.9rem;
+}
+
+.chevron {
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+}
+
+.invoice-body {
+  padding: 0 var(--space-3) var(--space-2);
+}
+
+.totals-mini {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.amount {
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.muted { color: var(--color-text-muted); }
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+
+  div {
+    display: flex;
+    gap: var(--space-1);
+  }
+}
+
+@media (max-width: 900px) {
+  .filters { grid-template-columns: 1fr; }
+  .invoice-head { flex-direction: column; align-items: flex-start; }
+}

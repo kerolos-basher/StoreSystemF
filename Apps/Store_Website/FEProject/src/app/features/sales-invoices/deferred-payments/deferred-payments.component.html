@@ -1,0 +1,99 @@
+<section class="page-header panel-card">
+  <h1>المدفوعات الآجلة</h1>
+  <p>متابعة الديون وتسجيل الدفعات</p>
+</section>
+
+<div class="stats-row">
+  <article class="stat-card">
+    <div class="stat-icon-wrap" aria-hidden="true">⏳</div>
+    <p class="stat-label">المتبقي (الصفحة)</p>
+    <p class="stat-value danger">{{ summary().totalOutstanding | number:'1.2-2' }} ج.م</p>
+  </article>
+  <article class="stat-card">
+    <div class="stat-icon-wrap" aria-hidden="true">✅</div>
+    <p class="stat-label">المدفوع (الصفحة)</p>
+    <p class="stat-value accent">{{ summary().totalPaid | number:'1.2-2' }} ج.م</p>
+  </article>
+  <article class="stat-card">
+    <div class="stat-icon-wrap" aria-hidden="true">📋</div>
+    <p class="stat-label">غير مسددة</p>
+    <p class="stat-value">{{ summary().openCount }}</p>
+  </article>
+</div>
+
+<section class="panel-card">
+  <form [formGroup]="filtersForm" class="filters" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>اسم العميل</mat-label>
+      <input matInput formControlName="customerName" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>الحالة</mat-label>
+      <mat-select formControlName="isFullyPaid">
+        <mat-option value="false">غير مسددة</mat-option>
+        <mat-option value="true">مسددة</mat-option>
+        <mat-option value="">الكل</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <div class="filter-actions">
+      <button class="btn-primary" type="submit">بحث</button>
+      <button class="btn-secondary" type="button" (click)="resetFilters()">إعادة تعيين</button>
+    </div>
+  </form>
+
+  @if (loading()) {
+    @for (i of [1,2,3]; track i) {
+      <div class="skeleton" style="height:60px;margin-bottom:0.5rem"></div>
+    }
+  } @else if (payments().length === 0) {
+    <div class="empty-state">لا توجد مدفوعات آجلة</div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>الفاتورة</th>
+          <th>العميل</th>
+          <th>التاريخ</th>
+          <th>الإجمالي</th>
+          <th>المدفوع</th>
+          <th>المتبقي</th>
+          <th>الحالة</th>
+          <th>إجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of payments(); track p.id) {
+          <tr>
+            <td>{{ p.invoiceNumber }}</td>
+            <td>{{ p.customerName }}<br /><small class="muted">{{ p.customerPhone }}</small></td>
+            <td>{{ p.invoiceDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ p.totalAmount | number:'1.2-2' }}</td>
+            <td>{{ p.paidAmount | number:'1.2-2' }}</td>
+            <td class="gold">{{ p.remainingAmount | number:'1.2-2' }}</td>
+            <td>
+              @if (p.isFullyPaid) {
+                <span class="badge-success">مسددة</span>
+              } @else {
+                <span class="badge-gold">مفتوحة</span>
+              }
+            </td>
+            <td class="actions-cell">
+              <button type="button" class="btn-secondary small" (click)="openStatement(p)">كشف حساب</button>
+              @if (!p.isFullyPaid) {
+                <button type="button" class="btn-primary small" (click)="openRegisterModal(p)">تسجيل دفعة</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <footer class="pagination">
+    <span>صفحة {{ pageNumber }} من {{ totalPages }}</span>
+    <div>
+      <button class="btn-secondary" type="button" [disabled]="pageNumber <= 1" (click)="previousPage()">السابق</button>
+      <button class="btn-secondary" type="button" [disabled]="pageNumber >= totalPages" (click)="nextPage()">التالي</button>
+    </div>
+  </footer>
+</section>

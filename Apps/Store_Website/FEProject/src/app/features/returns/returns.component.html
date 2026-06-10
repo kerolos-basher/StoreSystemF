@@ -1,0 +1,122 @@
+<section class="panel-card returns-card">
+  <header class="page-header">
+    <h1>المرتجعات</h1>
+    <p>مستند مرتجع مستقل مرتبط بالفاتورة الأصلية — لا يتم تعديل الفاتورة الأصلية.</p>
+  </header>
+
+  <form [formGroup]="searchForm" class="search-row">
+    <mat-form-field appearance="outline">
+      <mat-label>رقم فاتورة المبيعات</mat-label>
+      <input matInput formControlName="invoiceNumber" (keyup.enter)="loadByInvoiceNumber()" />
+    </mat-form-field>
+    <button class="btn-primary" type="button" (click)="loadByInvoiceNumber()">تحميل الفاتورة</button>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>أو ابحث بالعميل</mat-label>
+      <input matInput formControlName="customerName" [matAutocomplete]="customerAuto" />
+      <mat-autocomplete #customerAuto="matAutocomplete" [displayWith]="displayCustomer.bind(this)" (optionSelected)="selectCustomer($event.option.value)">
+        @for (c of filteredCustomers$ | async; track c.id) {
+          <mat-option [value]="c">{{ c.name }} — {{ c.phone }}</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </form>
+
+  @if (customerInvoices().length > 0) {
+    <div class="customer-invoices">
+      <h3>فواتير العميل</h3>
+      <div class="invoice-chips">
+        @for (inv of customerInvoices(); track inv.id) {
+          <button type="button" class="btn-secondary chip" (click)="loadCustomerInvoice(inv)">
+            {{ inv.invoiceNumber }} — {{ inv.grandTotal | number:'1.2-2' }} ج.م
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  @if (selectedInvoices().length > 0) {
+    <div class="form-row">
+      <label>سبب المرتجع العام
+        <select class="form-input" [(ngModel)]="returnReasonType" [ngModelOptions]="{standalone: true}">
+          @for (reason of returnReasons(); track reason.id) {
+            <option [ngValue]="reason.id">{{ reason.name }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @for (invoice of selectedInvoices(); track invoice.id) {
+      <section class="invoice-return-block">
+        <div class="block-header">
+          <h3>الفاتورة: {{ invoice.invoiceNumber }}</h3>
+          <button type="button" class="btn-secondary small danger" (click)="removeInvoice(invoice.id)">إزالة</button>
+        </div>
+
+        <div class="return-lines">
+          @for (line of invoice.lines; track line.salesInvoiceItemId) {
+            <article class="return-line">
+              <div class="line-head">
+                <strong>{{ line.productName }}</strong>
+                <span>متاح للإرجاع: {{ line.availableForReturn }}</span>
+              </div>
+              <div class="line-controls">
+                <label>الكمية
+                  <input type="number" class="form-input" min="0" [max]="line.availableForReturn" [(ngModel)]="line.quantity" [ngModelOptions]="{standalone: true}" />
+                </label>
+                <label>سبب الصنف
+                  <select class="form-input" [(ngModel)]="line.itemReasonType" [ngModelOptions]="{standalone: true}">
+                    @for (reason of returnReasons(); track reason.id) {
+                      <option [ngValue]="reason.id">{{ reason.name }}</option>
+                    }
+                  </select>
+                </label>
+                <input class="form-input" placeholder="ملاحظات..." [(ngModel)]="line.notes" [ngModelOptions]="{standalone: true}" />
+              </div>
+            </article>
+          }
+        </div>
+
+        <button class="btn-primary" type="button" [disabled]="saving()" (click)="submitReturn(invoice)">
+          {{ saving() ? 'جاري الحفظ...' : 'تسجيل مرتجع هذه الفاتورة' }}
+        </button>
+      </section>
+    }
+
+    <textarea class="form-input notes-area" placeholder="ملاحظات المرتجع..." [(ngModel)]="notes" [ngModelOptions]="{standalone: true}"></textarea>
+  }
+</section>
+
+<section class="panel-card history-section">
+  <h2>سجل المرتجعات</h2>
+  @if (loadingHistory()) {
+    @for (i of [1,2,3]; track i) {
+      <div class="skeleton" style="height:48px;margin-bottom:0.5rem"></div>
+    }
+  } @else if (returnsHistory().length === 0) {
+    <div class="empty-state">لا توجد مرتجعات مسجلة</div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>رقم المرتجع</th>
+          <th>الفاتورة</th>
+          <th>التاريخ</th>
+          <th>الأصناف</th>
+          <th>المبلغ</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of returnsHistory(); track r.id) {
+          <tr>
+            <td>{{ r.returnNumber }}</td>
+            <td>{{ r.salesInvoiceNumber }}</td>
+            <td>{{ r.returnDate | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ r.itemCount }}</td>
+            <td class="gold">{{ r.totalAmount | number:'1.2-2' }} ج.م</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

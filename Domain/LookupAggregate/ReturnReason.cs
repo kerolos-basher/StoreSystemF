@@ -11,16 +11,22 @@ public sealed class ReturnReason
     {
     }
 
-    public static ReturnReason Create(string name, bool isReturnToStock = true)
+    private ReturnReason(int id, string name, bool isReturnToStock)
+    {
+        if (id <= 0)
+            throw new ArgumentException("المعرف غير صالح.", nameof(id));
+
+        Id = id;
+        Name = name;
+        IsReturnToStock = isReturnToStock;
+    }
+
+    public static ReturnReason Create(int id, string name, bool isReturnToStock = true)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new Exception("اسم السبب مطلوب.");
 
-        return new ReturnReason
-        {
-            Name = name.Trim(),
-            IsReturnToStock = isReturnToStock
-        };
+        return new ReturnReason(id, name.Trim(), isReturnToStock);
     }
 
     public void Update(string name, bool isReturnToStock)

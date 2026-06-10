@@ -8,15 +8,19 @@ public class Category : ParentEntity
     {
     }
 
-    public static Category Create(string name)
+    private Category(long id, string name)
+    {
+        EnsureValidId(id);
+        Id = id;
+        Name = name;
+    }
+
+    public static Category Create(long id, string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new Exception("اسم الفئة مطلوب.");
 
-        return new Category
-        {
-            Name = name.Trim()
-        };
+        return new Category(id, name.Trim());
     }
 
     public void Update(string name)

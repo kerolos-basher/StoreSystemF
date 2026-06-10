@@ -22,6 +22,9 @@ public sealed class UpdateProductDetailsCommandHandler(IApplicationDbContext con
             request.SellingPrice,
             request.Notes ?? string.Empty);
 
+        if (request.Quantity > 0 && request.Quantity != details.Quantity)
+            details.UpdateQuantity(request.Quantity);
+
         await context.SaveChangesAsync();
     }
 }

@@ -4,7 +4,8 @@ namespace Application.Sales.Commands.CreateSale;
 
 public sealed record CreateSaleCommand(
     IReadOnlyList<SaleLineRequestDto> Items,
-    decimal Discount,
-    decimal Tax,
+    string? CustomerName,
+    string? CustomerPhone,
+    long? CustomerId,
     string Notes,
-    long? CustomerId = null) : ICommand<CreateSaleResultDto>;
+    bool IsDeferredPayment) : ICommand<CreateSaleResultDto>;

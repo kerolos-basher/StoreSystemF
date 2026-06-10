@@ -8,5 +8,6 @@ public enum InventoryTransactionType
     SupplierReturn = 4,
     Damaged = 5,
     Expired = 6,
-    Adjustment = 7
+    Adjustment = 7,
+    SaleReversal = 8
 }
