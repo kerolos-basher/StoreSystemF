@@ -51,6 +51,7 @@
             <tr>
               <th>الباركود</th>
               <th>المورد</th>
+              <th>الفئة</th>
               <th>سعر الشراء</th>
               <th>السعر المقترح</th>
               <th>الكمية</th>
@@ -63,28 +64,47 @@
             @for (line of details().lines; track line.id) {
               <tr>
                 <td class="barcode-cell" [title]="line.barcode">{{ line.barcode }}</td>
-                <td>{{ line.supplier }}</td>
                 @if (editingLineId() === line.id) {
+                  <td>
+                    <mat-select class="inline-select" [(ngModel)]="editSupplierId">
+                      <mat-option value="">—</mat-option>
+                      @for (supplier of suppliers(); track supplier.id) {
+                        <mat-option [value]="supplier.id">{{ supplier.name }}</mat-option>
+                      }
+                    </mat-select>
+                  </td>
+                  <td>
+                    <mat-select class="inline-select" [(ngModel)]="editCategoryId">
+                      <mat-option value="">—</mat-option>
+                      @for (category of categories(); track category.id) {
+                        <mat-option [value]="category.id">{{ category.name }}</mat-option>
+                      }
+                    </mat-select>
+                  </td>
                   <td><input type="number" class="form-input" [(ngModel)]="editPurchasePrice" /></td>
                   <td><input type="number" class="form-input" [(ngModel)]="editSellingPrice" /></td>
                   <td><input type="number" class="form-input" [(ngModel)]="editQuantity" /></td>
-                  <td colspan="1"><input class="form-input" [(ngModel)]="editNotes" placeholder="ملاحظات" /></td>
-                  <td>{{ line.purchaseDate | date:'dd/MM/yyyy' }}</td>
+                  <td class="emph">{{ line.remainingQuantity }}</td>
+                  <td>
+                    <input class="form-input notes-input" [(ngModel)]="editNotes" placeholder="ملاحظات" />
+                    <span class="date-hint">{{ line.purchaseDate | date:'dd/MM/yyyy' }}</span>
+                  </td>
                   <td class="actions">
                     <button type="button" class="btn-primary small" (click)="saveLine(line.id)">حفظ</button>
                     <button type="button" class="btn-secondary" (click)="editingLineId.set(null)">إلغاء</button>
                   </td>
                 } @else {
-                  <td>{{ line.purchasePrice | currency:'EGP':'symbol':'1.2-2' }}</td>
-                  <td>{{ line.sellingPrice | currency:'EGP':'symbol':'1.2-2' }}</td>
+                  <td>{{ line.supplier }}</td>
+                  <td>{{ line.category || '—' }}</td>
+                  <td>{{ line.purchasePrice }}</td>
+                  <td>{{ line.sellingPrice }}</td>
                   <td>{{ line.quantity }}</td>
                   <td class="emph">{{ line.remainingQuantity }}</td>
                   <td>{{ line.purchaseDate | date:'dd/MM/yyyy' }}</td>
                   <td class="actions">
                     <button type="button" class="btn-secondary small" (click)="openQr(line)">QR</button>
-                    <button type="button" class="btn-secondary small" (click)="startEditLine(line.id, line.purchasePrice, line.sellingPrice, line.quantity, line.notes)">تعديل</button>
-                    <button type="button" class="btn-secondary small danger" (click)="deleteLine(line.id)">حذف</button>
-                    <button type="button" class="btn-secondary small" (click)="deleteLine(line.id, true)">حذف إجباري</button>
+                    <button type="button" class="btn-secondary small" (click)="startEditLine(line.id, line.supplierId, line.categoryId, line.purchasePrice, line.sellingPrice, line.quantity, line.notes)">تعديل</button>
+                    <button type="button" class="btn-secondary small" (click)="deleteLine(line.id, true)">حذف</button>
                   </td>
                 }
               </tr>

@@ -14,7 +14,18 @@ public sealed class GetSalesInvoiceQueryHandler(IApplicationDbContext context)
             .AsNoTracking()
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == request.InvoiceId, cancellationToken)
-            ?? throw new Exception("الفاتورة غير موجودة.");
+            ?? throw new StoreException("الفاتورة غير موجودة.");
+
+        var detailsIds = invoice.Items
+            .Where(x => !x.IsDeleted)
+            .Select(x => x.ProductDetailsId)
+            .Distinct()
+            .ToList();
+
+        var stockByDetails = await context.ProductDetails
+            .AsNoTracking()
+            .Where(pd => detailsIds.Contains(pd.Id))
+            .ToDictionaryAsync(pd => pd.Id, pd => pd.RemainingQuantity, cancellationToken);
 
         string? customerName = null;
         string? customerPhone = null;
@@ -27,13 +38,14 @@ public sealed class GetSalesInvoiceQueryHandler(IApplicationDbContext context)
             customerPhone = customer?.Phone;
         }
 
-        return Map(invoice, customerName, customerPhone);
+        return Map(invoice, customerName, customerPhone, stockByDetails);
     }
 
     internal static SalesInvoiceDto Map(
         Domain.SalesAggregate.SalesInvoice invoice,
         string? customerName,
-        string? customerPhone) =>
+        string? customerPhone,
+        IReadOnlyDictionary<long, int>? stockByDetails = null) =>
         new(
             invoice.Id,
             invoice.InvoiceNumber,
@@ -53,6 +65,7 @@ public sealed class GetSalesInvoiceQueryHandler(IApplicationDbContext context)
                 x.Quantity,
                 x.ReturnedQuantity,
                 x.AvailableForReturn,
+                stockByDetails?.GetValueOrDefault(x.ProductDetailsId, 0) ?? 0,
                 x.UnitPrice,
                 x.LineTotal,
                 x.Notes)).ToList());

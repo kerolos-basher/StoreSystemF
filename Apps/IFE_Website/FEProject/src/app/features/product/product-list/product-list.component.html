@@ -123,11 +123,11 @@
                 </td>
                 <td><span class="qty-pill">{{ row.currentQuantity }}</span></td>
                 <td>
-                  {{ row.latestPurchasePrice | currency:'EGP':'symbol':'1.2-2' }}
+                  {{ row.latestPurchasePrice }}
                   @if (row.purchaseLineCount > 1) { <span class="hint">آخر سعر</span> }
                 </td>
                 <td><span class="barcode-cell" [title]="row.barcode">{{ row.barcode }}</span></td>
-                <td class="price-cell">{{ row.sellingPrice | currency:'EGP':'symbol':'1.2-2' }}</td>
+                <td class="price-cell">{{ row.sellingPrice }}</td>
                 <td>
                   {{ row.supplier || '—' }}
                   @if (row.supplierCount > 1) { <span class="hint">+{{ row.supplierCount - 1 }}</span> }

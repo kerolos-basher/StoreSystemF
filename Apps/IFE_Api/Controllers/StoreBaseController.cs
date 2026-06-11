@@ -1,24 +1,27 @@
 
-
+using Application.UOW;
 using Infrastructure.Services.LogFile;
 using Microsoft.AspNetCore.Mvc;
 using Resources;
 
 namespace Store_Api.Controllers;
 
-
-public class StoreBaseController : Controller
+public abstract class StoreBaseController : ControllerBase
 {
-
-
     protected readonly LogFileService Logger;
-    protected readonly IStoreUOW UOW;
+    protected readonly IStoreUOW? UOW;
 
-    public StoreBaseController(LogFileService logger, IStoreUOW uow)
+    protected StoreBaseController(LogFileService logger)
+        : this(logger, null)
     {
-        this.Logger = logger;
-        this.UOW = uow;
     }
+
+    protected StoreBaseController(LogFileService logger, IStoreUOW? uow)
+    {
+        Logger = logger;
+        UOW = uow;
+    }
+
     protected IActionResult TryCatchLog(Func<IActionResult> function)
     {
         try
@@ -27,33 +30,27 @@ public class StoreBaseController : Controller
         }
         catch (StoreException ex)
         {
-            this.Logger.LogException(ex);
-            //LoggerInstance.LogError(ex.ToString());
-            return StatusCode(402, ex.StoreExceptionMessage);
+            Logger.LogException(ex);
+            if (ex.StoreExceptionMessage.Trim().Contains(ExceptionMessage.LockedUser))
+                return StatusCode(515, new { message = ex.StoreExceptionMessage.Trim() });
+
+            return StatusCode(402, new { message = ex.StoreExceptionMessage.Trim() });
         }
         catch (AggregateException aggEx)
         {
-            if (aggEx.InnerException is StoreException)
+            if (aggEx.InnerException is StoreException storeEx)
             {
-                this.Logger.LogValidation(aggEx);
-                //LoggerInstance.LogError(aggEx.ToString());
-
-                return StatusCode(402, (aggEx.InnerException as StoreException).StoreExceptionMessage);
+                Logger.LogValidation(aggEx);
+                return StatusCode(402, new { message = storeEx.StoreExceptionMessage });
             }
-            else
-            {
-                this.Logger.LogValidation(aggEx);
-                //LoggerInstance.LogError(aggEx.ToString());
 
-                return StatusCode(500, ExceptionMessage.UnHandledException);
-            }
+            Logger.LogValidation(aggEx);
+            return StatusCode(500, new { message = ExceptionMessage.UnHandledException });
         }
         catch (Exception ex)
         {
-            this.Logger.LogException(ex);
-            //LoggerInstance.LogError(ex.ToString());
-
-            return StatusCode(500, ExceptionMessage.UnHandledException);
+            Logger.LogException(ex);
+            return StatusCode(500, new { message = ExceptionMessage.UnHandledException, detail = ex.InnerException?.Message ?? ex.Message });
         }
     }
 
@@ -65,8 +62,7 @@ public class StoreBaseController : Controller
         }
         catch (StoreException ex)
         {
-            this.Logger.LogException(ex);
-            //LoggerInstance.LogError(ex.ToString());
+            Logger.LogException(ex);
 
             if (ex.StoreExceptionMessage.Trim().Contains(ExceptionMessage.LockedUser))
                 return StatusCode(515, new { message = ex.StoreExceptionMessage.Trim() });
@@ -75,54 +71,42 @@ public class StoreBaseController : Controller
         }
         catch (AggregateException aggEx)
         {
-            if (aggEx.InnerException is StoreException)
+            if (aggEx.InnerException is StoreException storeEx)
             {
-                this.Logger.LogValidation(aggEx);
-                //LoggerInstance.LogError(aggEx.ToString());
-
-                return StatusCode(402, (aggEx.InnerException as StoreException).Message);
-            }
-            else
-            {
-                //LoggerInstance.LogError(aggEx.ToString());
-                this.Logger.LogValidation(aggEx);
-
+                Logger.LogValidation(aggEx);
+                return StatusCode(402, new { message = storeEx.StoreExceptionMessage });
             }
 
+            Logger.LogValidation(aggEx);
             return StatusCode(402, (aggEx.InnerException as StoreException)?.StoreExceptionMessage ?? "AggregateException occurred");
         }
         catch (Exception ex)
         {
             var inner = ex.InnerException?.Message ?? ex.Message;
-            this.Logger.LogException(ex);
-            //LoggerInstance.LogError(ex.ToString());
+            Logger.LogException(ex);
             return StatusCode(500, new { message = ExceptionMessage.UnHandledException, detail = inner });
         }
     }
+
     protected long GetUserId()
     {
-        long _userId;
-        return long.TryParse(User.Claims.FirstOrDefault(s => s.Type == "AspNetUserId")?.Value, out _userId)
-            ? _userId : throw new StoreException(ExceptionMessage.Unauthorized);
+        return long.TryParse(User.Claims.FirstOrDefault(s => s.Type == "AspNetUserId")?.Value, out var userId)
+            ? userId
+            : throw new StoreException(ExceptionMessage.Unauthorized);
     }
+
     protected long GetUserCommitteeId()
     {
-        long _committeeId;
-        return long.TryParse(User.Claims.FirstOrDefault(s => s.Type == "CommitteeId")?.Value, out _committeeId)
-            ? _committeeId : throw new StoreException(ExceptionMessage.Unauthorized);
+        return long.TryParse(User.Claims.FirstOrDefault(s => s.Type == "CommitteeId")?.Value, out var committeeId)
+            ? committeeId
+            : throw new StoreException(ExceptionMessage.Unauthorized);
     }
+
     protected bool IsArabic()
     {
-        if (string.IsNullOrEmpty(Request.Headers["Accept-Language"].ToString()))
-        {
+        if (string.IsNullOrEmpty(Request.Headers.AcceptLanguage.ToString()))
             return true;
-        }
-        else
-        {
-            return Request.Headers["Accept-Language"].ToString() == "en-US" ? false : true;
-        }
+
+        return Request.Headers.AcceptLanguage.ToString() != "en-US";
     }
-
-
-
 }

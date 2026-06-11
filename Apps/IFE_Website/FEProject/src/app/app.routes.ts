@@ -4,11 +4,11 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'entry' },
   {
     path: 'entry',
-    loadComponent: () => import('./features/purchase/add-purchase.component').then(m => m.AddPurchaseComponent)
+    loadComponent: () => import('./features/product/add-product/add-product.component').then(m => m.AddProductComponent)
   },
   {
     path: 'products',
-    loadComponent: () => import('./features/inventory/inventory-list/inventory-list.component').then(m => m.InventoryListComponent)
+    loadComponent: () => import('./features/product/product-list/product-list.component').then(m => m.ProductListComponent)
   },
   {
     path: 'price-scanner',

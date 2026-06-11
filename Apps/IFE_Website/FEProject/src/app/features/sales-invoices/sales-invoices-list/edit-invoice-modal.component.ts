@@ -10,6 +10,8 @@ import { SalesInvoicesListService } from './sales-invoices-list.service';
 
 interface EditableItem extends SalesInvoiceItem {
   productDetailsId: number;
+  originalQuantity: number;
+  maxQuantity: number;
 }
 
 @Component({
@@ -35,10 +37,43 @@ export class EditInvoiceModalComponent {
     this.invoice.set(this.data.invoice);
     this.notes = this.data.invoice.notes;
     this.isDeferredPayment = this.data.invoice.isDeferredPayment;
-    this.items.set(this.data.invoice.items.map(x => ({
-      ...x,
-      productDetailsId: x.productDetailsId ?? 0
-    })) as EditableItem[]);
+    this.items.set(this.data.invoice.items.map(x => {
+      const stockAvailable = x.stockAvailable ?? 0;
+      return {
+        ...x,
+        productDetailsId: x.productDetailsId ?? 0,
+        originalQuantity: x.quantity,
+        maxQuantity: x.quantity + stockAvailable
+      };
+    }) as EditableItem[]);
+  }
+
+  onQuantityChange(item: EditableItem, rawValue: number): void {
+    const requested = Math.max(1, Math.floor(Number(rawValue) || 1));
+    const previous = item.quantity;
+
+    if (requested > item.maxQuantity) {
+      item.quantity = item.maxQuantity;
+      this.snackBar.open(
+        `لا توجد كمية كافية في المخزون. الحد الأقصى ${item.maxQuantity}`,
+        'إغلاق',
+        { duration: 3500, panelClass: ['app-error-snackbar'] }
+      );
+      this.items.set([...this.items()]);
+      return;
+    }
+
+    item.quantity = requested;
+
+    if (requested < previous) {
+      this.snackBar.open(
+        `تم إرجاع ${previous - requested} وحدة إلى المخزون`,
+        'إغلاق',
+        { duration: 2800 }
+      );
+    }
+
+    this.items.set([...this.items()]);
   }
 
   save(): void {
@@ -60,9 +95,8 @@ export class EditInvoiceModalComponent {
         this.snackBar.open('تم تحديث الفاتورة', 'إغلاق', { duration: 2500 });
         this.dialogRef.close(true);
       },
-      error: err => {
+      error: () => {
         this.saving.set(false);
-        this.snackBar.open(err?.error?.message ?? 'فشل التحديث', 'إغلاق', { duration: 3500 });
       }
     });
   }

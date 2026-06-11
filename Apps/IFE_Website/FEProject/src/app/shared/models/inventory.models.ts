@@ -32,7 +32,9 @@ export interface ProductDetailsSearch {
 export interface ProductDetailLine {
   id: string;
   barcode: string;
+  supplierId?: string | null;
   supplier: string;
+  categoryId?: string | null;
   category: string;
   purchasePrice: number;
   sellingPrice: number;
@@ -127,6 +129,7 @@ export interface SalesInvoiceItem {
   quantity: number;
   returnedQuantity?: number;
   availableForReturn?: number;
+  stockAvailable?: number;
   unitPrice: number;
   lineTotal: number;
   notes: string;

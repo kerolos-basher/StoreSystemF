@@ -9,3 +9,10 @@ public class StoreException : Exception
         this.StoreExceptionMessage = message;
     }
 }
+
+public class IFEException : StoreException
+{
+    public string IFEExceptionMessage => StoreExceptionMessage;
+
+    public IFEException(string message) : base(message) { }
+}

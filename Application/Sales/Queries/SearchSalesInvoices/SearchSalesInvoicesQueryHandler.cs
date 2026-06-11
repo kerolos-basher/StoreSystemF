@@ -88,6 +88,7 @@ public sealed class SearchSalesInvoicesQueryHandler(IApplicationDbContext contex
                     i.Quantity,
                     i.ReturnedQuantity,
                     i.AvailableForReturn,
+                    0,
                     i.UnitPrice,
                     i.LineTotal,
                     i.Notes)).ToList());

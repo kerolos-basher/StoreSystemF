@@ -36,23 +36,23 @@
         <p class="barcode-cell" [title]="result()!.barcode">{{ result()!.barcode }}</p>
         <div class="result-grid">
           <div>
-            <span class="stat-label">السعر المقترح</span>
-            <strong class="suggested-price money-value">{{ result()!.suggestedSellingPrice | number:'1.2-2' }} ج.م</strong>
+            <span class="stat-label ml-2 mr-2 ">السعر المقترح</span>
+            <strong class="suggested-price money-value stat-label">  {{ result()!.suggestedSellingPrice }}   ج.م</strong>
           </div>
           <div>
-            <span class="stat-label">سعر الشراء</span>
-            <strong class="money-value">{{ result()!.purchasePrice | number:'1.2-2' }} ج.م</strong>
+            <span class="stat-label ml-2 mr-2">سعر الشراء  </span>
+            <strong class="money-value stat-label">{{ result()!.purchasePrice }}   ج.م</strong>
           </div>
           <div>
-            <span class="stat-label">المورد</span>
-            <strong>{{ result()!.supplierName }}</strong>
+            <span class="stat-label ml-2 mr-2">المورد</span>
+            <strong class="stat-label">{{ result()!.supplierName }}</strong>
           </div>
           <div>
-            <span class="stat-label">الفئة</span>
-            <strong>{{ result()!.categoryName }}</strong>
+            <span class="stat-label ml-2 mr-2">الفئة</span>
+            <strong class="stat-label">{{ result()!.categoryName }}</strong>
           </div>
           <div>
-            <span class="stat-label">الكمية المتاحة</span>
+            <span class="stat-label ml-2 mr-2">الكمية المتاحة</span>
             <strong>{{ result()!.remainingQuantity }}</strong>
           </div>
         </div>

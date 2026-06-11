@@ -1,5 +1,5 @@
 import { ProductDetails } from '../../../shared/models/inventory.models';
 
-export interface ProductDetailsModalData {
+export interface ProductDetailsData {
   details: ProductDetails;
 }

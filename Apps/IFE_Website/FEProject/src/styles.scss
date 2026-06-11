@@ -335,6 +335,7 @@ select {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   color: var(--color-white);
+  color-scheme: dark;
   padding: 10px 12px;
   min-height: 42px;
   line-height: 1.45;
@@ -343,6 +344,11 @@ select {
   width: 100%;
   text-align: right;
   transition: var(--transition-fast);
+
+  option {
+    background: #121820;
+    color: var(--color-text);
+  }
 
   &::placeholder {
     color: var(--color-text-muted);
@@ -452,8 +458,43 @@ textarea {
   border-color: rgba(0, 229, 255, 0.45) !important;
 }
 
-.mat-mdc-autocomplete-panel .mat-mdc-option {
+.mat-mdc-autocomplete-panel .mat-mdc-option,
+.mat-mdc-select-panel .mat-mdc-option {
   text-align: right;
+  color: var(--color-text) !important;
+}
+
+.mat-mdc-select-panel,
+.mat-mdc-menu-panel,
+.mat-mdc-menu-content {
+  background: rgba(18, 24, 32, 0.98) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius-sm) !important;
+  color: var(--color-text) !important;
+}
+
+.mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled),
+.mat-mdc-autocomplete-panel .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+  background: rgba(0, 229, 255, 0.12) !important;
+}
+
+.mat-mdc-select-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+.mat-mdc-select-panel .mat-mdc-option.mat-mdc-option-active,
+.mat-mdc-autocomplete-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+.mat-mdc-autocomplete-panel .mat-mdc-option.mat-mdc-option-active {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.mat-mdc-select-panel .mat-pseudo-checkbox-minimal.mat-pseudo-checkbox-checked::after {
+  color: var(--color-accent) !important;
+}
+
+.mat-datepicker-content,
+.mat-calendar {
+  background: rgba(18, 24, 32, 0.98) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius-sm) !important;
 }
 
 /* ── Badges ── */
@@ -606,6 +647,19 @@ textarea {
   background: rgba(18, 24, 32, 0.98) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: var(--border-radius-sm) !important;
+}
+
+.mat-mdc-select-value,
+.mat-mdc-select-arrow {
+  color: var(--color-text) !important;
+}
+
+.app-error-snackbar {
+  --mdc-snackbar-container-color: rgba(90, 24, 24, 0.96);
+  --mdc-snackbar-supporting-text-color: #ffd7d4;
+  --mat-snack-bar-button-color: #ffb4ae;
+  border: 1px solid rgba(255, 107, 99, 0.35);
+  border-radius: var(--border-radius-sm);
 }
 
 @keyframes fadeIn {

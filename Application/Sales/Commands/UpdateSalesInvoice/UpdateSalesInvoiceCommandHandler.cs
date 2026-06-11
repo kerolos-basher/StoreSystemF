@@ -14,7 +14,7 @@ public sealed class UpdateSalesInvoiceCommandHandler(
         var invoice = await context.SalesInvoice
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken)
-            ?? throw new Exception("الفاتورة غير موجودة.");
+            ?? throw new StoreException("الفاتورة غير موجودة.");
 
         invoice.UpdateNotes(request.Notes ?? string.Empty, request.IsDeferredPayment);
 
@@ -32,7 +32,7 @@ public sealed class UpdateSalesInvoiceCommandHandler(
             if (line.Id.HasValue)
             {
                 var item = existingItems.FirstOrDefault(x => x.Id == line.Id.Value)
-                    ?? throw new Exception("بند الفاتورة غير موجود.");
+                    ?? throw new StoreException("بند الفاتورة غير موجود.");
 
                 var diff = line.Quantity - item.Quantity;
                 if (diff > 0)
@@ -48,7 +48,10 @@ public sealed class UpdateSalesInvoiceCommandHandler(
                 var details = await context.ProductDetails
                     .Include(pd => pd.Product)
                     .FirstOrDefaultAsync(pd => pd.Id == line.ProductDetailsId, cancellationToken)
-                    ?? throw new Exception("تفاصيل المنتج غير موجودة.");
+                    ?? throw new StoreException("تفاصيل المنتج غير موجودة.");
+
+                if (details.Product.IsDeleted)
+                    throw new StoreException("لا يمكن بيع منتج محذوف.");
 
                 details.DeductStock(line.Quantity);
 
@@ -82,7 +85,7 @@ public sealed class UpdateSalesInvoiceCommandHandler(
     {
         var details = await context.ProductDetails
             .FirstOrDefaultAsync(pd => pd.Id == productDetailsId, ct)
-            ?? throw new Exception("تفاصيل المنتج غير موجودة.");
+            ?? throw new StoreException("تفاصيل المنتج غير موجودة.");
 
         details.DeductStock(quantity);
     }
@@ -98,7 +101,7 @@ public sealed class UpdateSalesInvoiceCommandHandler(
         var product = await context.Product
             .Include(p => p.ProductDetails)
             .FirstOrDefaultAsync(p => p.Id == item.ProductId, ct)
-            ?? throw new Exception("المنتج غير موجود.");
+            ?? throw new StoreException("المنتج غير موجود.");
 
         product.RestoreStock(item.ProductDetailsId, quantity);
 

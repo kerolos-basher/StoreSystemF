@@ -11,7 +11,7 @@ import {
 } from '../../../shared/models/inventory.models';
 
 @Injectable()
-export class InventoryListService {
+export class ProductListService {
   private readonly api = inject(InventoryApiService);
 
   getCategories(): Observable<Category[]> {

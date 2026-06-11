@@ -7,10 +7,23 @@ public sealed class DomainExceptionFilter : IExceptionFilter
 {
     public void OnException(ExceptionContext context)
     {
-        if (context.Exception is not Exception ex || ex is FluentValidation.ValidationException)
+        if (context.Exception is FluentValidation.ValidationException)
             return;
 
-        context.Result = new BadRequestObjectResult(new { message = ex.Message });
-        context.ExceptionHandled = true;
+        if (context.Exception is StoreException storeEx)
+        {
+            context.Result = new ObjectResult(new { message = storeEx.StoreExceptionMessage })
+            {
+                StatusCode = 402
+            };
+            context.ExceptionHandled = true;
+            return;
+        }
+
+        if (context.Exception is Exception ex)
+        {
+            context.Result = new BadRequestObjectResult(new { message = ex.Message });
+            context.ExceptionHandled = true;
+        }
     }
 }

@@ -9,13 +9,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { debounceTime } from 'rxjs';
-import { InventoryApiService } from '../../core/services/inventory-api.service';
-import { ProductListItem } from '../../shared/models/inventory.models';
-import { ProductDetailsDialogComponent } from './product-details-dialog/product-details-dialog.component';
+import { ProductListItem } from '../../../shared/models/inventory.models';
+import { ProductDetailsComponent } from '../product-details/product-details.component';
+import { ProductListService } from './product-list.service';
 
 @Component({
-  selector: 'app-products-view-page',
+  selector: 'app-product-list',
   standalone: true,
+  providers: [ProductListService],
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -28,11 +29,11 @@ import { ProductDetailsDialogComponent } from './product-details-dialog/product-
     DatePipe,
     DecimalPipe
   ],
-  templateUrl: './products-view-page.component.html',
-  styleUrl: './products-view-page.component.scss'
+  templateUrl: './product-list.component.html',
+  styleUrl: './product-list.component.scss'
 })
-export class ProductsViewPageComponent implements OnInit {
-  private readonly api = inject(InventoryApiService);
+export class ProductListComponent implements OnInit {
+  private readonly service = inject(ProductListService);
   private readonly fb = inject(FormBuilder);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -62,8 +63,8 @@ export class ProductsViewPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.api.getCategories().subscribe((items) => this.categories.set(items));
-    this.api.searchSuppliers().subscribe((items) => this.suppliers.set(items));
+    this.service.getCategories().subscribe(items => this.categories.set(items));
+    this.service.searchSuppliers().subscribe(items => this.suppliers.set(items));
     this.loadStatistics();
 
     this.filtersForm.valueChanges.pipe(debounceTime(300)).subscribe(() => {
@@ -79,7 +80,7 @@ export class ProductsViewPageComponent implements OnInit {
   }
 
   loadStatistics(): void {
-    this.api.getStatistics().subscribe((stats) =>
+    this.service.getStatistics().subscribe(stats =>
       this.statistics.set({
         totalProducts: stats.totalProducts,
         totalQuantity: stats.totalQuantity,
@@ -104,8 +105,8 @@ export class ProductsViewPageComponent implements OnInit {
       }
     }
 
-    this.api.searchProducts(payload).subscribe({
-      next: (result) => {
+    this.service.searchProducts(payload).subscribe({
+      next: result => {
         this.products.set(result.items);
         this.totalCount.set(result.totalCount);
         this.loading.set(false);
@@ -157,25 +158,25 @@ export class ProductsViewPageComponent implements OnInit {
   }
 
   openDetails(row: ProductListItem): void {
-    this.api.getProductDetails(row.id).subscribe({
-      next: (details) => {
-        this.dialog.open(ProductDetailsDialogComponent, {
-          width: '920px',
+    this.service.getProductDetails(row.id).subscribe({
+      next: details => {
+        const ref = this.dialog.open(ProductDetailsComponent, {
+          width: '1100px',
           maxWidth: '96vw',
-          maxHeight: '90vh',
+          maxHeight: '92vh',
           panelClass: 'app-dialog',
           autoFocus: false,
           restoreFocus: true,
-          data: {
-            details,
-            onChanged: () => {
-              this.search();
-              this.loadStatistics();
-            }
+          data: { details }
+        });
+        ref.afterClosed().subscribe(changed => {
+          if (changed) {
+            this.search();
+            this.loadStatistics();
           }
         });
       },
-      error: (err) => {
+      error: err => {
         this.snackBar.open(err?.error?.message ?? 'فشل تحميل التفاصيل', 'إغلاق', { duration: 3500 });
       }
     });
@@ -185,5 +186,4 @@ export class ProductsViewPageComponent implements OnInit {
     const row = this.selectedRow();
     if (row) this.openDetails(row);
   }
-
 }

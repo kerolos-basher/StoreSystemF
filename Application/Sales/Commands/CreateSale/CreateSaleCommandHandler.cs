@@ -51,10 +51,10 @@ public sealed class CreateSaleCommandHandler(
             var details = await context.ProductDetails
                 .Include(pd => pd.Product)
                 .FirstOrDefaultAsync(pd => pd.Id == line.ProductDetailsId, cancellationToken)
-                ?? throw new Exception("تفاصيل المنتج غير موجودة.");
+                ?? throw new StoreException("تفاصيل المنتج غير موجودة.");
 
             if (details.Product.IsDeleted)
-                throw new Exception("لا يمكن بيع منتج محذوف.");
+                throw new StoreException("لا يمكن بيع منتج محذوف.");
 
             details.DeductStock(line.Quantity);
 
@@ -78,10 +78,10 @@ public sealed class CreateSaleCommandHandler(
         if (request.IsDeferredPayment)
         {
             if (!customerId.HasValue)
-                throw new Exception("يجب تحديد عميل للدفع الآجل.");
+                throw new StoreException("يجب تحديد عميل للدفع الآجل.");
 
             if (request.AmountPaid > invoice.GrandTotal)
-                throw new Exception($"المبلغ المدفوع ({request.AmountPaid}) أكبر من إجمالي الفاتورة ({invoice.GrandTotal}).");
+                throw new StoreException($"المبلغ المدفوع ({request.AmountPaid}) أكبر من إجمالي الفاتورة ({invoice.GrandTotal}).");
 
             var deferredPaymentId = await sequenceService.GetNextValueAsync(SequenceKeys.DeferredPaymentSequence, cancellationToken);
             var deferredPayment = DeferredPayment.Create(

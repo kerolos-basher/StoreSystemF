@@ -146,6 +146,14 @@ namespace Resources
             }
         }
 
+        public static string InsufficientStock
+        {
+            get
+            {
+                return ResourceManager.GetString("InsufficientStock", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Company name is required..
         /// </summary>

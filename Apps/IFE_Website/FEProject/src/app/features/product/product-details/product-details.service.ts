@@ -1,11 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { InventoryApiService } from '../../../core/services/inventory-api.service';
-import { ProductDetails, QRCodeData } from '../../../shared/models/inventory.models';
+import { Category, ProductDetails, QRCodeData, Supplier } from '../../../shared/models/inventory.models';
 
 @Injectable()
-export class ProductDetailsModalService {
+export class ProductDetailsService {
   private readonly api = inject(InventoryApiService);
+
+  getCategories(): Observable<Category[]> {
+    return this.api.getCategories();
+  }
+
+  searchSuppliers(): Observable<Supplier[]> {
+    return this.api.searchSuppliers();
+  }
 
   reloadDetails(productId: string): Observable<ProductDetails> {
     return this.api.getProductDetails(productId);
@@ -22,9 +30,18 @@ export class ProductDetailsModalService {
   updateProductDetails(
     productId: string,
     detailsId: string,
-    payload: { purchasePrice: number; sellingPrice: number; quantity?: number; notes?: string }
+    payload: {
+      supplierId?: string | null;
+      categoryId?: string | null;
+      purchasePrice: number;
+      sellingPrice: number;
+      quantity?: number;
+      notes?: string;
+    }
   ): Observable<void> {
     return this.api.updateProductDetails(productId, detailsId, {
+      supplierId: payload.supplierId,
+      categoryId: payload.categoryId,
       purchasePrice: payload.purchasePrice,
       sellingPrice: payload.sellingPrice,
       quantity: payload.quantity ?? 0,

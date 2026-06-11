@@ -11,6 +11,7 @@ using Application.Products.Queries.GetQRCode;
 using Application.Products.Queries.GetProductsAutocomplete;
 using Application.Products.Queries.SearchProductNames;
 using Application.Products.Queries.SearchProducts;
+using Infrastructure.Services.LogFile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,203 +21,193 @@ namespace Store_Api.Controllers;
 [ApiController]
 [AllowAnonymous]
 [Route("api/v1/products")]
-public sealed class ProductsController(ISender sender) : ControllerBase
+public sealed class ProductsController : StoreBaseController
 {
-    [HttpPost("purchase-entry")]
-    public async Task<IActionResult> CreatePurchaseEntry(
-        [FromBody] CreatePurchaseEntryRequest request,
-        CancellationToken cancellationToken)
-    {
-        var command = new CreatePurchaseEntryCommand(
-            request.ProductName,
-            request.ExistingProductId,
-            request.Barcode ?? string.Empty,
-            request.CategoryId,
-            request.SupplierName ?? string.Empty,
-            request.PurchasePrice,
-            request.SellingPrice,
-            request.Quantity,
-            request.PurchaseDate,
-            request.Notes ?? string.Empty);
+    private readonly ISender _sender;
 
-        var result = await sender.Send(command, cancellationToken);
-        return Ok(new { productId = result.ProductId, productDetailsId = result.ProductDetailsId, barcode = result.Barcode });
-    }
+    public ProductsController(LogFileService logger, ISender sender) : base(logger) => _sender = sender;
+
+    [HttpPost("purchase-entry")]
+    public Task<IActionResult> CreatePurchaseEntry(
+        [FromBody] CreatePurchaseEntryRequest request,
+        CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            var command = new CreatePurchaseEntryCommand(
+                request.ProductName,
+                request.ExistingProductId,
+                request.Barcode ?? string.Empty,
+                request.CategoryId,
+                request.SupplierName ?? string.Empty,
+                request.PurchasePrice,
+                request.SellingPrice,
+                request.Quantity,
+                request.PurchaseDate,
+                request.Notes ?? string.Empty);
+
+            var result = await _sender.Send(command, cancellationToken);
+            return Ok(new { productId = result.ProductId, productDetailsId = result.ProductDetailsId, barcode = result.Barcode });
+        });
 
     [HttpGet("autocomplete")]
-    public async Task<IActionResult> Autocomplete(
-        [FromQuery] string q,
-        CancellationToken cancellationToken = default)
-    {
-        var result = await sender.Send(new GetProductsAutocompleteQuery(q ?? string.Empty), cancellationToken);
-        return Ok(result);
-    }
+    public Task<IActionResult> Autocomplete([FromQuery] string q, CancellationToken cancellationToken = default) =>
+        TryCatchLogAsync(async () =>
+            Ok(await _sender.Send(new GetProductsAutocompleteQuery(q ?? string.Empty), cancellationToken)));
 
     [HttpGet("search-names")]
-    public async Task<IActionResult> SearchNames(
+    public Task<IActionResult> SearchNames(
         [FromQuery] string term,
         [FromQuery] int limit = 10,
-        CancellationToken cancellationToken = default)
-    {
-        var result = await sender.Send(new SearchProductNamesQuery(term ?? string.Empty, limit), cancellationToken);
-        return Ok(result);
-    }
+        CancellationToken cancellationToken = default) =>
+        TryCatchLogAsync(async () =>
+            Ok(await _sender.Send(new SearchProductNamesQuery(term ?? string.Empty, limit), cancellationToken)));
 
     [HttpGet]
-    public async Task<IActionResult> Search(
-        [FromQuery] SearchProductsRequest request,
-        CancellationToken cancellationToken)
-    {
-        var query = new SearchProductsQuery(
-            request.ProductName ?? string.Empty,
-            request.Barcode ?? string.Empty,
-            ParseLong(request.SupplierId),
-            ParseLong(request.CategoryId),
-            request.PurchasePriceFrom,
-            request.PurchasePriceTo,
-            request.SellingPriceFrom,
-            request.SellingPriceTo,
-            request.QuantityFrom,
-            request.QuantityTo,
-            request.SortBy ?? string.Empty,
-            request.SortDirection ?? "desc",
-            request.PageNumber ?? 1,
-            request.PageSize ?? 10);
-
-        var result = await sender.Send(query, cancellationToken);
-        return Ok(new
+    public Task<IActionResult> Search([FromQuery] SearchProductsRequest request, CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
         {
-            items = result.Items,
-            totalCount = result.TotalCount,
-            pageNumber = result.PageNumber,
-            pageSize = result.PageSize
+            var query = new SearchProductsQuery(
+                request.ProductName ?? string.Empty,
+                request.Barcode ?? string.Empty,
+                ParseLong(request.SupplierId),
+                ParseLong(request.CategoryId),
+                request.PurchasePriceFrom,
+                request.PurchasePriceTo,
+                request.SellingPriceFrom,
+                request.SellingPriceTo,
+                request.QuantityFrom,
+                request.QuantityTo,
+                request.SortBy ?? string.Empty,
+                request.SortDirection ?? "desc",
+                request.PageNumber ?? 1,
+                request.PageSize ?? 10);
+
+            var result = await _sender.Send(query, cancellationToken);
+            return Ok(new
+            {
+                items = result.Items,
+                totalCount = result.TotalCount,
+                pageNumber = result.PageNumber,
+                pageSize = result.PageSize
+            });
         });
-    }
 
     [HttpGet("by-barcode/{barcode}")]
-    public async Task<IActionResult> GetByBarcode(
-        string barcode,
-        CancellationToken cancellationToken)
-    {
-        var product = await sender.Send(new GetProductByBarcodeQuery(barcode), cancellationToken);
-        return Ok(product);
-    }
+    public Task<IActionResult> GetByBarcode(string barcode, CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () => Ok(await _sender.Send(new GetProductByBarcodeQuery(barcode), cancellationToken)));
 
     [HttpGet("details/{productDetailsId}/qrcode")]
-    public async Task<IActionResult> GetQrCode(
-        string productDetailsId,
-        CancellationToken cancellationToken)
-    {
-        if (!long.TryParse(productDetailsId, out var id))
-            return BadRequest(new { message = "معرف تفاصيل المنتج غير صالح." });
+    public Task<IActionResult> GetQrCode(string productDetailsId, CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            if (!long.TryParse(productDetailsId, out var id))
+                return BadRequest(new { message = "معرف تفاصيل المنتج غير صالح." });
 
-        var qr = await sender.Send(new GetQRCodeQuery(id), cancellationToken);
-        return Ok(qr);
-    }
+            var qr = await _sender.Send(new GetQRCodeQuery(id), cancellationToken);
+            return Ok(qr);
+        });
 
     [HttpGet("statistics")]
-    public async Task<IActionResult> GetStatistics(
+    public Task<IActionResult> GetStatistics(
         [FromQuery] int lowStockThreshold = 10,
-        CancellationToken cancellationToken = default)
-    {
-        var stats = await sender.Send(
-            new GetProductStatisticsQuery(lowStockThreshold),
-            cancellationToken);
-
-        return Ok(new
+        CancellationToken cancellationToken = default) =>
+        TryCatchLogAsync(async () =>
         {
-            totalProducts = stats.TotalProducts,
-            totalQuantity = stats.TotalQuantity,
-            lowStockCount = stats.LowStockCount,
-            inventoryValue = stats.InventoryValue
+            var stats = await _sender.Send(new GetProductStatisticsQuery(lowStockThreshold), cancellationToken);
+            return Ok(new
+            {
+                totalProducts = stats.TotalProducts,
+                totalQuantity = stats.TotalQuantity,
+                lowStockCount = stats.LowStockCount,
+                inventoryValue = stats.InventoryValue
+            });
         });
-    }
 
     [HttpGet("{productId}/details")]
-    public async Task<IActionResult> GetDetails(
-        string productId,
-        CancellationToken cancellationToken)
-    {
-        if (!long.TryParse(productId, out var id))
-            return BadRequest(new { message = "Invalid product id." });
+    public Task<IActionResult> GetDetails(string productId, CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            if (!long.TryParse(productId, out var id))
+                return BadRequest(new { message = "Invalid product id." });
 
-        var details = await sender.Send(new GetProductDetailsQuery(id), cancellationToken);
-        return Ok(details);
-    }
+            var details = await _sender.Send(new GetProductDetailsQuery(id), cancellationToken);
+            return Ok(details);
+        });
 
     [HttpGet("{productId}/history")]
-    public async Task<IActionResult> GetHistory(
-        string productId,
-        CancellationToken cancellationToken)
-    {
-        if (!long.TryParse(productId, out var id))
-            return BadRequest(new { message = "Invalid product id." });
+    public Task<IActionResult> GetHistory(string productId, CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            if (!long.TryParse(productId, out var id))
+                return BadRequest(new { message = "Invalid product id." });
 
-        var history = await sender.Send(new GetPurchaseHistoryQuery(id), cancellationToken);
-        return Ok(history);
-    }
+            var history = await _sender.Send(new GetPurchaseHistoryQuery(id), cancellationToken);
+            return Ok(history);
+        });
 
     [HttpPut("{productId}")]
-    public async Task<IActionResult> UpdateProduct(
+    public Task<IActionResult> UpdateProduct(
         string productId,
         [FromBody] UpdateProductRequest request,
-        CancellationToken cancellationToken)
-    {
-        if (!long.TryParse(productId, out var id))
-            return BadRequest(new { message = "معرف المنتج غير صالح." });
+        CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            if (!long.TryParse(productId, out var id))
+                return BadRequest(new { message = "معرف المنتج غير صالح." });
 
-        await sender.Send(new UpdateProductCommand(id, request.ProductName), cancellationToken);
-        return Ok();
-    }
+            await _sender.Send(new UpdateProductCommand(id, request.ProductName), cancellationToken);
+            return Ok();
+        });
 
     [HttpDelete("{productId}")]
-    public async Task<IActionResult> DeleteProduct(
-        string productId,
-        CancellationToken cancellationToken)
-    {
-        if (!long.TryParse(productId, out var id))
-            return BadRequest(new { message = "معرف المنتج غير صالح." });
+    public Task<IActionResult> DeleteProduct(string productId, CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            if (!long.TryParse(productId, out var id))
+                return BadRequest(new { message = "معرف المنتج غير صالح." });
 
-        await sender.Send(new DeleteProductCommand(id), cancellationToken);
-        return Ok();
-    }
+            await _sender.Send(new DeleteProductCommand(id), cancellationToken);
+            return Ok();
+        });
 
     [HttpPut("{productId}/details/{detailsId}")]
-    public async Task<IActionResult> UpdateProductDetails(
+    public Task<IActionResult> UpdateProductDetails(
         string productId,
         string detailsId,
         [FromBody] UpdateProductDetailsRequest request,
-        CancellationToken cancellationToken)
-    {
-        if (!long.TryParse(productId, out var pid) || !long.TryParse(detailsId, out var did))
-            return BadRequest(new { message = "المعرف غير صالح." });
+        CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            if (!long.TryParse(productId, out var pid) || !long.TryParse(detailsId, out var did))
+                return BadRequest(new { message = "المعرف غير صالح." });
 
-        await sender.Send(new UpdateProductDetailsCommand(
-            pid,
-            did,
-            request.SupplierId,
-            request.CategoryId,
-            request.PurchasePrice,
-            request.SellingPrice,
-            request.Quantity,
-            request.Notes ?? string.Empty), cancellationToken);
+            await _sender.Send(new UpdateProductDetailsCommand(
+                pid,
+                did,
+                request.SupplierId,
+                request.CategoryId,
+                request.PurchasePrice,
+                request.SellingPrice,
+                request.Quantity,
+                request.Notes ?? string.Empty), cancellationToken);
 
-        return Ok();
-    }
+            return Ok();
+        });
 
     [HttpDelete("{productId}/details/{detailsId}")]
-    public async Task<IActionResult> DeleteProductDetails(
+    public Task<IActionResult> DeleteProductDetails(
         string productId,
         string detailsId,
         [FromQuery] bool forceDelete = false,
-        CancellationToken cancellationToken = default)
-    {
-        if (!long.TryParse(productId, out var pid) || !long.TryParse(detailsId, out var did))
-            return BadRequest(new { message = "المعرف غير صالح." });
+        CancellationToken cancellationToken = default) =>
+        TryCatchLogAsync(async () =>
+        {
+            if (!long.TryParse(productId, out var pid) || !long.TryParse(detailsId, out var did))
+                return BadRequest(new { message = "المعرف غير صالح." });
 
-        await sender.Send(new DeleteProductDetailsCommand(pid, did, forceDelete), cancellationToken);
-        return Ok();
-    }
+            await _sender.Send(new DeleteProductDetailsCommand(pid, did, forceDelete), cancellationToken);
+            return Ok();
+        });
 
     private static long? ParseLong(string value)
     {

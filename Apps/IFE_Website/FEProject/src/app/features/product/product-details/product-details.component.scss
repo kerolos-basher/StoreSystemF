@@ -1,10 +1,11 @@
-.details-dialog {
+.details-modal {
   width: 100%;
   max-width: 100%;
   overflow: hidden;
+  font-family: 'Cairo', sans-serif;
 }
 
-.dialog-header {
+.modal-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -12,7 +13,7 @@
   padding: 0 0 var(--space-1);
 }
 
-.dialog-header h2 {
+.modal-header h2 {
   margin: 0;
   font-size: 1.05rem;
   color: var(--color-white);
@@ -22,11 +23,6 @@
   margin: 0;
   font-size: 0.72rem;
   color: var(--color-text-muted);
-}
-
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72rem;
 }
 
 .close-btn {
@@ -47,27 +43,18 @@
   flex-wrap: wrap;
 }
 
-.header-actions button,
-.actions button {
-  border: none;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--color-text);
-  border-radius: 6px;
-  padding: 4px 8px;
+.header-actions .small,
+.actions .small {
+  padding: 4px 10px;
   font-size: 0.75rem;
-  cursor: pointer;
 }
 
-.header-actions button.danger,
-.actions button.danger {
-  background: rgba(255, 59, 48, 0.12);
-  color: #ff8a82;
+.danger {
+  color: var(--color-danger) !important;
+  border-color: rgba(255, 59, 48, 0.35) !important;
 }
 
-.name-input {
-  width: 100%;
-  margin-top: 4px;
-}
+.name-input { margin-top: 4px; }
 
 .summary-grid {
   display: grid;
@@ -91,10 +78,42 @@
   }
 }
 
+.lines-section h3 {
+  margin: 0 0 var(--space-2);
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+}
+
 .lines-table-wrap {
   overflow-x: auto;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
+}
+
+.form-input {
+  width: 100%;
+  min-width: 90px;
+}
+
+.inline-select {
+  width: 100%;
+  min-width: 100px;
+  background: var(--color-input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  color: var(--color-white);
+}
+
+.notes-input {
+  margin-bottom: 4px;
+}
+
+.date-hint {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
 }
 
 .emph {

@@ -145,6 +145,9 @@
     <value>UnHandledException</value>
     <comment>UnHandledException</comment>
   </data>
+  <data name="InsufficientStock" xml:space="preserve">
+    <value>Insufficient stock. Requested {0}, available {1}.</value>
+  </data>
   <data name="CompanyNameRequired" xml:space="preserve">
     <value>Company name is required.</value>
   </data>

@@ -20,7 +20,9 @@ public sealed record ProductListItemDto(
 public sealed record ProductDetailLineDto(
     long Id,
     string Barcode,
+    long? SupplierId,
     string Supplier,
+    long? CategoryId,
     string Category,
     decimal PurchasePrice,
     decimal SellingPrice,

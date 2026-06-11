@@ -9,9 +9,12 @@
       <mat-form-field appearance="outline">
         <mat-label>اسم الصنف</mat-label>
         <input matInput formControlName="productName" [matAutocomplete]="productAuto" (input)="onProductInput()" />
-        <mat-autocomplete #productAuto="matAutocomplete" (optionSelected)="selectProduct($event.option.value)">
-          @for (p of filteredProducts$ | async; track p.id) {
-            <mat-option [value]="p">{{ p.productName }}</mat-option>
+        <mat-autocomplete #productAuto="matAutocomplete" [displayWith]="displayProduct" (optionSelected)="selectProduct($event.option.value)">
+          @for (item of filteredProducts$ | async; track item.productDetailsId) {
+            <mat-option [value]="item">
+              {{ item.productName }} — {{ item.supplierName }}
+              <span class="money-value">({{ item.suggestedSellingPrice | number:'1.2-2' }} ج.م)</span>
+            </mat-option>
           }
         </mat-autocomplete>
         @if (form.controls.productName.touched && form.controls.productName.invalid) {

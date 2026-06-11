@@ -1,43 +1,53 @@
-import { Component, Inject, inject, signal } from '@angular/core';
+import { Component, Inject, inject, OnInit, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppDialogService } from '../../../core/services/app-dialog.service';
 import { QrCodeDialogComponent } from '../../../shared/components/qr-code-dialog/qr-code-dialog.component';
-import { ProductDetails } from '../../../shared/models/inventory.models';
-import { ProductDetailsModalData } from './product-details-modal.interfaces';
-import { ProductDetailsModalService } from './product-details-modal.service';
+import { Category, ProductDetails, Supplier } from '../../../shared/models/inventory.models';
+import { ProductDetailsData } from './product-details.interfaces';
+import { ProductDetailsService } from './product-details.service';
 
 @Component({
-  selector: 'app-product-details-modal',
+  selector: 'app-product-details',
   standalone: true,
-  providers: [ProductDetailsModalService],
-  imports: [MatDialogModule, MatSnackBarModule, CurrencyPipe, DatePipe, DecimalPipe, FormsModule],
-  templateUrl: './product-details-modal.component.html',
-  styleUrl: './product-details-modal.component.scss'
+  providers: [ProductDetailsService],
+  imports: [MatDialogModule, MatSelectModule, MatSnackBarModule, CurrencyPipe, DatePipe, DecimalPipe, FormsModule],
+  templateUrl: './product-details.component.html',
+  styleUrl: './product-details.component.scss'
 })
-export class ProductDetailsModalComponent {
-  private readonly modalService = inject(ProductDetailsModalService);
+export class ProductDetailsComponent implements OnInit {
+  private readonly detailsService = inject(ProductDetailsService);
   private readonly dialog = inject(MatDialog);
   private readonly appDialog = inject(AppDialogService);
   private readonly snackBar = inject(MatSnackBar);
-  private readonly dialogRef = inject(MatDialogRef<ProductDetailsModalComponent>);
+  private readonly dialogRef = inject(MatDialogRef<ProductDetailsComponent>);
   private changed = false;
 
   readonly details = signal<ProductDetails>({} as ProductDetails);
+  readonly categories = signal<Category[]>([]);
+  readonly suppliers = signal<Supplier[]>([]);
   readonly editingProduct = signal(false);
   readonly editingLineId = signal<string | null>(null);
   productName = '';
 
+  editSupplierId = '';
+  editCategoryId = '';
   editPurchasePrice = 0;
   editSellingPrice = 0;
   editQuantity = 0;
   editNotes = '';
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: ProductDetailsModalData) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: ProductDetailsData) {
     this.details.set(data.details);
     this.productName = data.details.productName;
+  }
+
+  ngOnInit(): void {
+    this.detailsService.getCategories().subscribe(items => this.categories.set(items));
+    this.detailsService.searchSuppliers().subscribe(items => this.suppliers.set(items));
   }
 
   get canDeleteProduct(): boolean {
@@ -50,7 +60,7 @@ export class ProductDetailsModalComponent {
   }
 
   saveProduct(): void {
-    this.modalService.updateProduct(this.details().id, this.productName).subscribe({
+    this.detailsService.updateProduct(this.details().id, this.productName).subscribe({
       next: () => {
         this.details.update(d => ({ ...d, productName: this.productName }));
         this.editingProduct.set(false);
@@ -73,19 +83,29 @@ export class ProductDetailsModalComponent {
       danger: true
     }).subscribe(confirmed => {
       if (!confirmed) return;
-      this.modalService.deleteProduct(this.details().id).subscribe({
-      next: () => {
-        this.changed = true;
-        this.snackBar.open('تم الحذف', 'إغلاق', { duration: 2500 });
-        this.dialogRef.close(true);
-      },
-      error: err => this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 })
+      this.detailsService.deleteProduct(this.details().id).subscribe({
+        next: () => {
+          this.changed = true;
+          this.snackBar.open('تم الحذف', 'إغلاق', { duration: 2500 });
+          this.dialogRef.close(true);
+        },
+        error: err => this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 })
       });
     });
   }
 
-  startEditLine(lineId: string, purchasePrice: number, sellingPrice: number, quantity: number, notes?: string): void {
+  startEditLine(
+    lineId: string,
+    supplierId: string | null | undefined,
+    categoryId: string | null | undefined,
+    purchasePrice: number,
+    sellingPrice: number,
+    quantity: number,
+    notes?: string
+  ): void {
     this.editingLineId.set(lineId);
+    this.editSupplierId = supplierId ?? this.resolveSupplierIdByName(this.details().lines.find(l => l.id === lineId)?.supplier) ?? '';
+    this.editCategoryId = categoryId ?? this.resolveCategoryIdByName(this.details().lines.find(l => l.id === lineId)?.category) ?? '';
     this.editPurchasePrice = purchasePrice;
     this.editSellingPrice = sellingPrice;
     this.editQuantity = quantity;
@@ -93,7 +113,9 @@ export class ProductDetailsModalComponent {
   }
 
   saveLine(lineId: string): void {
-    this.modalService.updateProductDetails(this.details().id, lineId, {
+    this.detailsService.updateProductDetails(this.details().id, lineId, {
+      supplierId: this.editSupplierId || null,
+      categoryId: this.editCategoryId || null,
       purchasePrice: this.editPurchasePrice,
       sellingPrice: this.editSellingPrice,
       quantity: this.editQuantity,
@@ -118,7 +140,7 @@ export class ProductDetailsModalComponent {
       danger: true
     }).subscribe(confirmed => {
       if (!confirmed) return;
-      this.modalService.deleteProductDetails(this.details().id, lineId, force).subscribe({
+      this.detailsService.deleteProductDetails(this.details().id, lineId, force).subscribe({
         next: () => {
           this.reloadDetails();
           this.snackBar.open('تم الحذف', 'إغلاق', { duration: 2500 });
@@ -142,7 +164,7 @@ export class ProductDetailsModalComponent {
   }
 
   openQr(line: { id: string; barcode: string }): void {
-    this.modalService.getQRCode(line.id).subscribe({
+    this.detailsService.getQRCode(line.id).subscribe({
       next: qr => {
         this.dialog.open(QrCodeDialogComponent, {
           width: '420px',
@@ -160,9 +182,19 @@ export class ProductDetailsModalComponent {
 
   private reloadDetails(): void {
     this.changed = true;
-    this.modalService.reloadDetails(this.details().id).subscribe({
+    this.detailsService.reloadDetails(this.details().id).subscribe({
       next: d => this.details.set(d),
       error: () => this.snackBar.open('فشل تحديث البيانات', 'إغلاق', { duration: 2500 })
     });
+  }
+
+  private resolveSupplierIdByName(name?: string): string | null {
+    if (!name || name === '—') return null;
+    return this.suppliers().find(s => s.name === name)?.id ?? null;
+  }
+
+  private resolveCategoryIdByName(name?: string): string | null {
+    if (!name || name === '—') return null;
+    return this.categories().find(c => c.name === name)?.id ?? null;
   }
 }

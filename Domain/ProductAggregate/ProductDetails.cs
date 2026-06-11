@@ -80,10 +80,10 @@ public class ProductDetails : ParentEntity
     public void DeductStock(int quantity)
     {
         if (quantity <= 0)
-            throw new Exception("الكمية غير صالحة.");
+            throw new StoreException("الكمية غير صالحة.");
 
         if (RemainingQuantity < quantity)
-            throw new Exception($"الكمية المطلوبة ({quantity}) أكبر من المتاح ({RemainingQuantity})");
+            throw new StoreException(string.Format(Resources.ExceptionMessage.InsufficientStock, quantity, RemainingQuantity));
 
         RemainingQuantity -= quantity;
         AddDomainEvent(new StockDeductedDomainEvent(Id, quantity));

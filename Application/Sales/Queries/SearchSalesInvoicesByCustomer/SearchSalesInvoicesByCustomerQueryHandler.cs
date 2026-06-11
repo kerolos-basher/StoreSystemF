@@ -40,6 +40,7 @@ public sealed class SearchSalesInvoicesByCustomerQueryHandler(IApplicationDbCont
                 i.Quantity,
                 i.ReturnedQuantity,
                 i.AvailableForReturn,
+                0,
                 i.UnitPrice,
                 i.LineTotal,
                 i.Notes)).ToList())).ToList();

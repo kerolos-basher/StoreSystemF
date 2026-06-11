@@ -34,17 +34,17 @@ export class SalesStore {
     barcode: string;
     sellingPrice: number;
     availableQuantity: number;
-  }): void {
+  }): boolean {
     const productId = Number(product.productId);
     const productDetailsId = Number(product.productDetailsId);
     const existing = this.items().find(x => x.productDetailsId === productDetailsId);
 
     if (existing) {
-      if (existing.quantity >= existing.maxQuantity) return;
+      if (existing.quantity >= existing.maxQuantity) return false;
       this.items.update(list =>
         list.map(x => x.productDetailsId === productDetailsId ? { ...x, quantity: x.quantity + 1 } : x)
       );
-      return;
+      return true;
     }
 
     this.items.update(list => [...list, {
@@ -59,18 +59,22 @@ export class SalesStore {
       notes: '',
       maxQuantity: product.availableQuantity
     }]);
+    return true;
   }
 
-  updateQuantity(productDetailsId: number, quantity: number): void {
+  updateQuantity(productDetailsId: number, quantity: number): boolean {
     if (quantity <= 0) {
       this.removeItem(productDetailsId);
-      return;
+      return true;
     }
+
+    const current = this.items().find(x => x.productDetailsId === productDetailsId);
+    if (!current || quantity > current.maxQuantity) return false;
+
     this.items.update(list =>
-      list.map(x => x.productDetailsId === productDetailsId
-        ? { ...x, quantity: Math.min(quantity, x.maxQuantity) }
-        : x)
+      list.map(x => x.productDetailsId === productDetailsId ? { ...x, quantity } : x)
     );
+    return true;
   }
 
   updateUnitPrice(productDetailsId: number, unitPrice: number): void {

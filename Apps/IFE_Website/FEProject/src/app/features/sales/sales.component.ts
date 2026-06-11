@@ -10,6 +10,7 @@ import { debounceTime, distinctUntilChanged, filter, Observable, switchMap } fro
 import { SalesStore } from '../../core/stores/sales.store';
 import { BarcodeScannerComponent } from '../../shared/components/barcode-scanner/barcode-scanner.component';
 import { CustomerAutoComplete, ProductDetailsAutoComplete, ProductDetailsSearch } from '../../shared/models/inventory.models';
+import { displayProductWithSupplier } from '../../shared/utils/product-autocomplete-display';
 import { SalesService } from './sales.service';
 
 @Component({
@@ -121,17 +122,15 @@ export class SalesComponent implements OnInit {
     });
   }
 
-  displayProduct(item: ProductDetailsAutoComplete | string): string {
-    return typeof item === 'string' ? item : `${item.productName} — ${item.supplierName}`;
-  }
+  displayProduct = displayProductWithSupplier;
 
   private addProduct(product: ProductDetailsSearch): void {
     if (product.remainingQuantity <= 0) {
-      this.snackBar.open('الكمية غير متوفرة', 'إغلاق', { duration: 2500 });
+      this.snackBar.open('لا توجد كمية كافية في المخزون', 'إغلاق', { duration: 3000, panelClass: ['app-error-snackbar'] });
       return;
     }
 
-    this.store.addOrIncrement({
+    const added = this.store.addOrIncrement({
       productId: product.productId,
       productDetailsId: product.productDetailsId,
       productName: product.productName,
@@ -140,6 +139,20 @@ export class SalesComponent implements OnInit {
       sellingPrice: product.suggestedSellingPrice,
       availableQuantity: product.remainingQuantity
     });
+
+    if (!added) {
+      this.snackBar.open('لا توجد كمية كافية في المخزون', 'إغلاق', { duration: 3000, panelClass: ['app-error-snackbar'] });
+    }
+  }
+
+  onQuantityChange(productDetailsId: number, quantity: number, maxQuantity: number): void {
+    if (!this.store.updateQuantity(productDetailsId, quantity)) {
+      this.snackBar.open(`لا توجد كمية كافية في المخزون. الحد الأقصى ${maxQuantity}`, 'إغلاق', {
+        duration: 3500,
+        panelClass: ['app-error-snackbar']
+      });
+      this.store.updateQuantity(productDetailsId, maxQuantity);
+    }
   }
 
   selectCustomer(customer: CustomerAutoComplete): void {
@@ -217,9 +230,8 @@ export class SalesComponent implements OnInit {
         this.productSearchForm.reset({ barcode: '', productName: '' });
         this.snackBar.open(`تم البيع — فاتورة ${result.invoiceNumber}`, 'إغلاق', { duration: 4000 });
       },
-      error: err => {
+      error: () => {
         this.completing.set(false);
-        this.snackBar.open(err?.error?.message ?? 'فشل إتمام البيع', 'إغلاق', { duration: 3500 });
       }
     });
   }

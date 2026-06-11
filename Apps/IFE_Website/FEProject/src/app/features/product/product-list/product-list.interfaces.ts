@@ -1,6 +1,6 @@
 import { ProductListItem, ProductStatistics } from '../../../shared/models/inventory.models';
 
-export interface InventoryFilters {
+export interface ProductListFilters {
   productName: string;
   barcode: string;
   supplierId: string;
@@ -11,7 +11,7 @@ export interface InventoryFilters {
   quantityTo: string;
 }
 
-export interface InventoryStatistics {
+export interface ProductListStatistics {
   totalProducts: number;
   totalQuantity: number;
   inventoryValue: number;

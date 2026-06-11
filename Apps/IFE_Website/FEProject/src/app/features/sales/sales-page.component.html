@@ -25,7 +25,7 @@
               <label>الكمية
                 <input type="number" min="1" [max]="item.maxQuantity" [ngModel]="item.quantity" (ngModelChange)="store.updateQuantity(item.productDetailsId, +$event)" />
               </label>
-              <span>{{ item.unitPrice * item.quantity | currency:'EGP':'symbol':'1.2-2' }}</span>
+              <span>{{ item.unitPrice * item.quantity  }}</span>
             </div>
             <input class="notes-input" placeholder="ملاحظات..." [ngModel]="item.notes" (ngModelChange)="store.updateNotes(item.productDetailsId, $event)" />
           </article>
@@ -33,16 +33,16 @@
       </div>
     }
 
-    <div class="totals">
-      <div class="total-row"><span>المجموع الفرعي</span><span>{{ store.subtotal() | currency:'EGP':'symbol':'1.2-2' }}</span></div>
+    <!-- <div class="totals">
+      <div class="total-row"><span>المجموع الفرعي</span><span>{{ store.subtotal()  }}</span></div>
       <label>الخصم
         <input type="number" min="0" [ngModel]="store.discount()" (ngModelChange)="store.discount.set(+$event || 0)" />
       </label>
       <label>الضريبة
         <input type="number" min="0" [ngModel]="store.tax()" (ngModelChange)="store.tax.set(+$event || 0)" />
       </label>
-      <div class="total-row grand"><span>الإجمالي</span><span>{{ store.grandTotal() | currency:'EGP':'symbol':'1.2-2' }}</span></div>
-    </div>
+      <div class="total-row grand"><span>الإجمالي</span><span>{{ store.grandTotal()  }}</span></div>
+    </div> -->
 
     <textarea class="notes-area" placeholder="ملاحظات الفاتورة..." [ngModel]="store.notes()" (ngModelChange)="store.notes.set($event)"></textarea>
 

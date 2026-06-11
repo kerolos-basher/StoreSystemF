@@ -138,6 +138,9 @@
   <data name="UnHandledException" xml:space="preserve">
     <value>خطأ غير متوقع.</value>
   </data>
+  <data name="InsufficientStock" xml:space="preserve">
+    <value>لا توجد كمية كافية في المخزون. المطلوب {0} والمتاح {1}.</value>
+  </data>
   <data name="CompanyNameRequired" xml:space="preserve">
     <value>اسم الشركة مطلوب.</value>
   </data>

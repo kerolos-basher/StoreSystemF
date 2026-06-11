@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -9,23 +9,24 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged, filter, Observable, switchMap } from 'rxjs';
-import { Category, ProductAutoComplete, Supplier } from '../../shared/models/inventory.models';
-import { AddPurchaseService } from './add-purchase.service';
+import { Category, ProductDetailsAutoComplete, Supplier } from '../../../shared/models/inventory.models';
+import { displayProductWithSupplier } from '../../../shared/utils/product-autocomplete-display';
+import { AddProductService } from './add-product.service';
 
 @Component({
-  selector: 'app-add-purchase',
+  selector: 'app-add-product',
   standalone: true,
-  providers: [AddPurchaseService],
+  providers: [AddProductService],
   imports: [
-    AsyncPipe, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
+    AsyncPipe, DecimalPipe, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatDatepickerModule, MatNativeDateModule, MatAutocompleteModule, MatSnackBarModule
   ],
-  templateUrl: './add-purchase.component.html',
-  styleUrl: './add-purchase.component.scss'
+  templateUrl: './add-product.component.html',
+  styleUrl: './add-product.component.scss'
 })
-export class AddPurchaseComponent implements OnInit {
+export class AddProductComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly service = inject(AddPurchaseService);
+  private readonly service = inject(AddProductService);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly categories = signal<Category[]>([]);
@@ -33,7 +34,7 @@ export class AddPurchaseComponent implements OnInit {
   readonly saving = signal(false);
   readonly productId = signal<number | null>(null);
   readonly previewBarcode = signal('');
-  filteredProducts$!: Observable<ProductAutoComplete[]>;
+  filteredProducts$!: Observable<ProductDetailsAutoComplete[]>;
   filteredSuppliers$!: Observable<Supplier[]>;
 
   readonly form = this.fb.group({
@@ -65,17 +66,17 @@ export class AddPurchaseComponent implements OnInit {
     );
   }
 
-  selectProduct(p: ProductAutoComplete): void {
-    this.productId.set(p.id);
-    this.form.patchValue({ productName: p.productName, existingProductId: p.id });
+  selectProduct(item: ProductDetailsAutoComplete): void {
+    this.productId.set(item.productId);
+    this.form.patchValue({ productName: item.productName, existingProductId: item.productId });
   }
 
+  displayProduct = displayProductWithSupplier;
+
   onProductInput(): void {
-    const name = (this.form.controls.productName.value ?? '').trim();
-    if (this.productId() && name !== this.form.controls.productName.value) {
-      this.productId.set(null);
-      this.form.controls.existingProductId.setValue(null);
-    }
+    if (!this.productId()) return;
+    this.productId.set(null);
+    this.form.controls.existingProductId.setValue(null);
   }
 
   onSuggestedPriceBlur(): void {

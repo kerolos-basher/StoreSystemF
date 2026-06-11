@@ -8,6 +8,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged, filter, Observable, switchMap } from 'rxjs';
 import { BarcodeScannerComponent } from '../../shared/components/barcode-scanner/barcode-scanner.component';
 import { ProductDetailsAutoComplete, ProductDetailsSearch } from '../../shared/models/inventory.models';
+import { displayProductWithSupplier } from '../../shared/utils/product-autocomplete-display';
 import { PriceCheckService } from './price-check.service';
 
 @Component({
@@ -64,9 +65,7 @@ export class PriceCheckComponent implements OnInit {
     this.lookup(item.barcode);
   }
 
-  displayProduct(item: ProductDetailsAutoComplete | string): string {
-    return typeof item === 'string' ? item : `${item.productName} — ${item.supplierName}`;
-  }
+  displayProduct = displayProductWithSupplier;
 
   private lookup(barcode: string): void {
     this.loading.set(true);

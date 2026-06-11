@@ -24,7 +24,9 @@ public sealed class GetProductDetailsQueryHandler(IApplicationDbContext context)
             .Select(d => new ProductDetailLineDto(
                 d.Id,
                 d.BarCode,
+                d.SupplierId,
                 d.Supplier != null ? d.Supplier.Name : "—",
+                d.CategoryId,
                 d.Category != null ? d.Category.Name : "—",
                 d.Price,
                 d.SeLingPrice,

@@ -1,5 +1,6 @@
 using Application.DeferredPayments.Commands.UpdateDeferredPayment;
 using Application.DeferredPayments.Queries.SearchDeferredPayments;
+using Infrastructure.Services.LogFile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,54 +10,53 @@ namespace Store_Api.Controllers;
 [ApiController]
 [AllowAnonymous]
 [Route("api/v1/deferred-payments")]
-public sealed class DeferredPaymentsController(ISender sender) : ControllerBase
+public sealed class DeferredPaymentsController : StoreBaseController
 {
+    private readonly ISender _sender;
+
+    public DeferredPaymentsController(LogFileService logger, ISender sender) : base(logger) => _sender = sender;
+
     [HttpGet]
-    public async Task<IActionResult> Search(
+    public Task<IActionResult> Search(
         [FromQuery] string customerTerm,
         [FromQuery] string customerName,
         [FromQuery] bool? isFullyPaid,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
-        CancellationToken cancellationToken = default)
-    {
-        var term = !string.IsNullOrWhiteSpace(customerTerm) ? customerTerm : customerName;
-        var result = await sender.Send(
-            new SearchDeferredPaymentsQuery(term, isFullyPaid, pageNumber, pageSize),
-            cancellationToken);
-
-        return Ok(new
+        CancellationToken cancellationToken = default) =>
+        TryCatchLogAsync(async () =>
         {
-            items = result.Items,
-            totalCount = result.TotalCount,
-            pageNumber = result.PageNumber,
-            pageSize = result.PageSize
+            var term = !string.IsNullOrWhiteSpace(customerTerm) ? customerTerm : customerName;
+            var result = await _sender.Send(
+                new SearchDeferredPaymentsQuery(term, isFullyPaid, pageNumber, pageSize),
+                cancellationToken);
+
+            return Ok(new
+            {
+                items = result.Items,
+                totalCount = result.TotalCount,
+                pageNumber = result.PageNumber,
+                pageSize = result.PageSize
+            });
         });
-    }
 
     [HttpGet("{id}/statement")]
-    public async Task<IActionResult> GetStatement(
-        long id,
-        CancellationToken cancellationToken)
-    {
-        var result = await sender.Send(
-            new Application.DeferredPayments.Queries.GetDeferredPaymentStatement.GetDeferredPaymentStatementQuery(id),
-            cancellationToken);
-        return Ok(result);
-    }
+    public Task<IActionResult> GetStatement(long id, CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+            Ok(await _sender.Send(
+                new Application.DeferredPayments.Queries.GetDeferredPaymentStatement.GetDeferredPaymentStatementQuery(id),
+                cancellationToken)));
 
     [HttpPost("{id}/payments")]
-    public async Task<IActionResult> RegisterPayment(
+    public Task<IActionResult> RegisterPayment(
         long id,
         [FromBody] RegisterPaymentRequest request,
-        CancellationToken cancellationToken)
-    {
-        await sender.Send(
-            new UpdateDeferredPaymentCommand(id, request.AmountPaid, request.Notes),
-            cancellationToken);
-
-        return Ok();
-    }
+        CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            await _sender.Send(new UpdateDeferredPaymentCommand(id, request.AmountPaid, request.Notes), cancellationToken);
+            return Ok();
+        });
 
     public sealed class RegisterPaymentRequest
     {
