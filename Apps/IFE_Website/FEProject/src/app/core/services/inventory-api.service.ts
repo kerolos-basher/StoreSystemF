@@ -5,7 +5,7 @@ import {
   Category, CreatePurchaseEntryRequest, CreatePurchaseEntryResult, CreateReturnRequest,
   CreateReturnResult, CreateSaleResult, CustomerAutoComplete, DeferredPaymentListItem, DeferredPaymentStatement,
   FinancialReport, PagedResult, ProductAutoComplete, ProductDetails, ProductDetailsAutoComplete,
-  ProductDetailsSearch, ProductListItem, ProductStatistics, QRCodeData, ReturnInvoiceDetail,
+  ProductDetailsSearch, ProductListItem, ProductStatistics, BarcodeLabelData, ReturnInvoiceDetail,
   ReturnInvoiceListItem, ReturnReason, SaleLineRequest, SalesInvoiceDetail, SalesInvoiceListItem,
   Supplier
 } from '../../shared/models/inventory.models';
@@ -151,8 +151,8 @@ export class InventoryApiService {
     return this.http.get<ProductDetailsSearch>(`${this.baseUrl}/product-details/search-by-barcode/${encodeURIComponent(barcode)}`);
   }
 
-  getQRCode(productDetailsId: string): Observable<QRCodeData> {
-    return this.http.get<QRCodeData>(`${this.baseUrl}/products/details/${productDetailsId}/qrcode`);
+  getBarcodeLabel(productDetailsId: string): Observable<BarcodeLabelData> {
+    return this.http.get<BarcodeLabelData>(`${this.baseUrl}/products/details/${productDetailsId}/barcode-label`);
   }
 
   getStatistics(lowStockThreshold = 10): Observable<ProductStatistics> {

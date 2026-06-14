@@ -99,10 +99,6 @@ export class SalesComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onScan(barcode: string): void {
-    this.lookupBarcode(barcode);
-  }
-
   onBarcodeKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();

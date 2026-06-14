@@ -7,7 +7,7 @@ using Application.Products.Queries.GetProductByBarcode;
 using Application.Products.Queries.GetProductStatistics;
 using Application.Products.Queries.GetProductDetails;
 using Application.Products.Queries.GetPurchaseHistory;
-using Application.Products.Queries.GetQRCode;
+using Application.Products.Queries.GetBarcodeLabel;
 using Application.Products.Queries.GetProductsAutocomplete;
 using Application.Products.Queries.SearchProductNames;
 using Application.Products.Queries.SearchProducts;
@@ -96,15 +96,15 @@ public sealed class ProductsController : StoreBaseController
     public Task<IActionResult> GetByBarcode(string barcode, CancellationToken cancellationToken) =>
         TryCatchLogAsync(async () => Ok(await _sender.Send(new GetProductByBarcodeQuery(barcode), cancellationToken)));
 
-    [HttpGet("details/{productDetailsId}/qrcode")]
-    public Task<IActionResult> GetQrCode(string productDetailsId, CancellationToken cancellationToken) =>
+    [HttpGet("details/{productDetailsId}/barcode-label")]
+    public Task<IActionResult> GetBarcodeLabel(string productDetailsId, CancellationToken cancellationToken) =>
         TryCatchLogAsync(async () =>
         {
             if (!long.TryParse(productDetailsId, out var id))
                 return BadRequest(new { message = "معرف تفاصيل المنتج غير صالح." });
 
-            var qr = await _sender.Send(new GetQRCodeQuery(id), cancellationToken);
-            return Ok(qr);
+            var label = await _sender.Send(new GetBarcodeLabelQuery(id), cancellationToken);
+            return Ok(label);
         });
 
     [HttpGet("statistics")]

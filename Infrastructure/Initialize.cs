@@ -7,7 +7,7 @@ using Infrastructure.Database.Repositories.Generic_Repository;
 using Application.Abstractions.Persistence;
 using Application.Abstractions.Services;
 using Infrastructure.Services.Inventory;
-using Infrastructure.Services.QRCode;
+using Infrastructure.Services.Barcode;
 using Infrastructure.Services.Sequences;
 using Infrastructure.UOW;
 using Microsoft.AspNetCore.Identity;
@@ -24,7 +24,7 @@ public static class Initialize
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<StoreContext>());
         services.AddScoped<ISequenceService, SequenceService>();
         services.AddScoped<IInventoryTransactionService, Infrastructure.Services.Inventory.InventoryTransactionService>();
-        services.AddScoped<IQRCodeService, QRCodeService>();
+        services.AddScoped<IBarcodeImageService, BarcodeImageService>();
         services.AddSingleton<LogFileService>();
         services.AddScoped(typeof(ILookupRepository<>), typeof(LookupRepository<>));
 

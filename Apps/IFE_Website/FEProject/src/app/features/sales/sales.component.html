@@ -22,11 +22,11 @@
       @if (customerForm.controls.isDeferredPayment.value) {
         <mat-form-field appearance="outline" class="amount-paid-field">
           <mat-label>المبلغ المدفوع الآن</mat-label>
-          <input matInput type="number" formControlName="amountPaid"   />
+          <input matInput type="number" formControlName="amountPaid" />
         </mat-form-field>
         <p class="deferred-hint">
           المتبقي على العميل:
-          <span class="money-value accent">{{ store.remainingAmount()  }} ج.م</span>
+          <span class="money-value accent">{{ store.remainingAmount() }} ج.م</span>
         </p>
       }
     </form>
@@ -39,7 +39,7 @@
         </mat-form-field>
         <button type="button" class="btn-primary" (click)="lookupBarcode()">بحث</button>
       </div>
-      <p class="scan-hint">وجّه الماسح الضوئي نحو حقل الباركود — يتم الإدخال تلقائياً ثم Enter</p>
+      <p class="scan-hint">وجّه ماسح Xprinter نحو حقل الباركود — يتم الإدخال تلقائياً ثم Enter</p>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>اسم الصنف</mat-label>

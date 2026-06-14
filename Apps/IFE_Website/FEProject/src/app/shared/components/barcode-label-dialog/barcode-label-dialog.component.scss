@@ -1,17 +1,17 @@
-.qr-content {
+.barcode-content {
   text-align: center;
   padding: 1rem 0;
 }
 
-.qr-image {
-  width: 260px;
-  height: 260px;
-  border-radius: 12px;
+.barcode-image {
+  width: 100%;
+  max-width: 360px;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
-  animation: fadeIn 0.4s ease;
+  background: #fff;
 }
 
-.barcode {
+.barcode-value {
   margin-top: 0.75rem;
   color: var(--color-text-muted);
   font-family: monospace;

@@ -68,7 +68,7 @@ export interface ProductListItem {
   supplierCount: number;
 }
 
-export interface QRCodeData {
+export interface BarcodeLabelData {
   productId: string;
   productDetailsId: string;
   barcode: string;

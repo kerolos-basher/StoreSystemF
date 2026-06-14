@@ -2,15 +2,15 @@ using Application.Abstractions.Persistence;
 using Application.Abstractions.Services;
 using Application.Products.Dtos;
 
-namespace Application.Products.Queries.GetQRCode;
+namespace Application.Products.Queries.GetBarcodeLabel;
 
-public sealed class GetQRCodeQueryHandler(
+public sealed class GetBarcodeLabelQueryHandler(
     IApplicationDbContext context,
-    IQRCodeService qrCodeService)
-    : IQueryHandler<GetQRCodeQuery, QRCodeDto>
+    IBarcodeImageService barcodeImageService)
+    : IQueryHandler<GetBarcodeLabelQuery, BarcodeLabelDto>
 {
-    public async Task<QRCodeDto> Handle(
-        GetQRCodeQuery request,
+    public async Task<BarcodeLabelDto> Handle(
+        GetBarcodeLabelQuery request,
         CancellationToken cancellationToken)
     {
         var details = await context.ProductDetails
@@ -20,9 +20,9 @@ public sealed class GetQRCodeQueryHandler(
             ?? throw new Exception("تفاصيل المنتج غير موجودة.");
 
         var barcode = details.BarCode;
-        var png = qrCodeService.GeneratePng(barcode);
+        var png = barcodeImageService.GeneratePng(barcode);
 
-        return new QRCodeDto(
+        return new BarcodeLabelDto(
             details.ProductId.ToString(),
             details.Id.ToString(),
             barcode,

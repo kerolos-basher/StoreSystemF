@@ -68,7 +68,7 @@ public sealed record ProductByBarcodeDto(
     int AvailableQuantity,
     string ImageUrl);
 
-public sealed record QRCodeDto(
+public sealed record BarcodeLabelDto(
     string ProductId,
     string ProductDetailsId,
     string Barcode,

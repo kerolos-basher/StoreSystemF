@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { InventoryApiService } from '../../../core/services/inventory-api.service';
-import { Category, ProductDetails, QRCodeData, Supplier } from '../../../shared/models/inventory.models';
+import { Category, ProductDetails, BarcodeLabelData, Supplier } from '../../../shared/models/inventory.models';
 
 @Injectable()
 export class ProductDetailsService {
@@ -53,7 +53,7 @@ export class ProductDetailsService {
     return this.api.deleteProductDetails(productId, detailsId, forceDelete);
   }
 
-  getQRCode(productDetailsId: string): Observable<QRCodeData> {
-    return this.api.getQRCode(productDetailsId);
+  getBarcodeLabel(productDetailsId: string): Observable<BarcodeLabelData> {
+    return this.api.getBarcodeLabel(productDetailsId);
   }
 }

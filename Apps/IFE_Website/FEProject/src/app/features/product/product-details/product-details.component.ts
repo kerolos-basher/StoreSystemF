@@ -5,7 +5,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AppDialogService } from '../../../core/services/app-dialog.service';
-import { QrCodeDialogComponent } from '../../../shared/components/qr-code-dialog/qr-code-dialog.component';
+import { BarcodeLabelDialogComponent } from '../../../shared/components/barcode-label-dialog/barcode-label-dialog.component';
 import { Category, ProductDetails, Supplier } from '../../../shared/models/inventory.models';
 import { ProductDetailsData } from './product-details.interfaces';
 import { ProductDetailsService } from './product-details.service';
@@ -148,16 +148,16 @@ export class ProductDetailsComponent implements OnInit {
     });
   }
 
-  openQr(line: { id: string; barcode: string }): void {
-    this.detailsService.getQRCode(line.id).subscribe({
-      next: qr => {
-        this.dialog.open(QrCodeDialogComponent, {
+  openBarcode(line: { id: string; barcode: string }): void {
+    this.detailsService.getBarcodeLabel(line.id).subscribe({
+      next: label => {
+        this.dialog.open(BarcodeLabelDialogComponent, {
           width: '420px',
           maxWidth: '96vw',
-          data: { productName: `${this.details().productName} — ${line.barcode}`, qr }
+          data: { productName: `${this.details().productName} — ${line.barcode}`, label }
         });
       },
-      error: err => this.snackBar.open(err?.error?.message ?? 'فشل QR', 'إغلاق', { duration: 3500 })
+      error: err => this.snackBar.open(err?.error?.message ?? 'فشل تحميل الباركود', 'إغلاق', { duration: 3500 })
     });
   }
 
