@@ -43,4 +43,8 @@ export class ReturnsService {
   searchReturns(query: Record<string, string | number>): Observable<PagedResult<ReturnInvoiceListItem>> {
     return this.api.searchReturns(query);
   }
+
+  searchInvoices(query: Record<string, string | number | boolean>): Observable<PagedResult<SalesInvoiceListItem>> {
+    return this.api.searchSalesInvoices(query);
+  }
 }

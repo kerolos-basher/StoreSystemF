@@ -26,7 +26,7 @@ public sealed class ReturnInvoice : ParentEntity
         Id = id;
         ReturnNumber = $"RET-{id}";
         SalesInvoiceId = salesInvoiceId;
-        ReturnDate = DateTime.UtcNow;
+        ReturnDate = DateTime.Now;
         ReturnReasonType = returnReasonType;
         Notes = notes?.Trim() ?? string.Empty;
     }

@@ -8,6 +8,7 @@ public sealed record CreateReturnResultDto(
 public sealed record ReturnLineRequestDto(
     long SalesInvoiceItemId,
     int Quantity,
+    decimal UnitPrice,
     int ItemReasonType,
     string Notes);
 

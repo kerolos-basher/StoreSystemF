@@ -2,15 +2,18 @@
   <div class="panel-card details-panel">
     <header class="page-header">
       <h1>فحص السعر</h1>
-      <p>ابحث بالباركود أو اسم الصنف</p>
+      <p>امسح الباركود بماسح Xprinter أو ابحث بالاسم</p>
     </header>
 
     <form [formGroup]="searchForm" class="search-form">
-      <mat-form-field appearance="outline">
-        <mat-label>الباركود</mat-label>
-        <input matInput formControlName="barcode" (keyup.enter)="lookupBarcode()" />
-      </mat-form-field>
-      <button type="button" class="btn-primary" (click)="lookupBarcode()">بحث</button>
+      <div class="barcode-scan-row">
+        <mat-form-field appearance="outline" class="barcode-field">
+          <mat-label>الباركود (ماسح Xprinter)</mat-label>
+          <input #barcodeInput matInput formControlName="barcode" (keydown)="onBarcodeKeyDown($event)" />
+        </mat-form-field>
+        <button type="button" class="btn-primary" (click)="lookupBarcode()">بحث</button>
+      </div>
+      <p class="scan-hint">وجّه الماسح الضوئي نحو حقل الباركود — يتم الإدخال تلقائياً ثم Enter</p>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>اسم الصنف</mat-label>
@@ -59,16 +62,10 @@
         @if (result()!.notes) {
           <p class="notes">{{ result()!.notes }}</p>
         }
+        <button type="button" class="btn-secondary print-btn" (click)="printLabel()">طباعة بطاقة السعر</button>
       </article>
     } @else {
-      <div class="empty-state">لم يتم العثور على منتج — امسح الرمز أو ابحث بالاسم</div>
+      <div class="empty-state">لم يتم العثور على منتج — امسح الباركود أو ابحث بالاسم</div>
     }
-  </div>
-
-  <div class="panel-card scanner-panel">
-    <h2>الماسح الضوئي</h2>
-    <div class="scanner-container">
-      <app-barcode-scanner (scanned)="onScan($event)" />
-    </div>
   </div>
 </section>

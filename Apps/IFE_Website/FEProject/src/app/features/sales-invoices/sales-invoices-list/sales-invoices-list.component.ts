@@ -10,6 +10,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { AppDialogService } from '../../../core/services/app-dialog.service';
 import { SalesInvoiceListItem } from '../../../shared/models/inventory.models';
 import { EditInvoiceModalComponent } from './edit-invoice-modal.component';
+import { formatLocalDate } from '../../../shared/utils/date-format';
 import { SalesInvoicesListService } from './sales-invoices-list.service';
 
 @Component({
@@ -67,8 +68,8 @@ export class SalesInvoicesListComponent implements OnInit {
       pageSize: this.pageSize
     };
 
-    if (raw.dateFrom) payload['dateFrom'] = raw.dateFrom.toISOString();
-    if (raw.dateTo) payload['dateTo'] = raw.dateTo.toISOString();
+    if (raw.dateFrom) payload['dateFrom'] = formatLocalDate(raw.dateFrom);
+    if (raw.dateTo) payload['dateTo'] = formatLocalDate(raw.dateTo);
     if (raw.invoiceNumber?.trim()) payload['invoiceNumber'] = raw.invoiceNumber.trim();
 
     this.service.searchInvoices(payload).subscribe({

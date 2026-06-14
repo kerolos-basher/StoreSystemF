@@ -1,4 +1,5 @@
 using Application.Abstractions.Persistence;
+using Domain.SalesAggregate;
 
 namespace Application.Reports.Queries.GetFinancialReport;
 
@@ -9,50 +10,62 @@ public sealed class GetFinancialReportQueryHandler(IApplicationDbContext context
         GetFinancialReportQuery request,
         CancellationToken cancellationToken)
     {
-        var from = request.From?.Date ?? DateTime.UtcNow.Date.AddMonths(-1);
-        var to = request.To?.Date.AddDays(1).AddTicks(-1) ?? DateTime.UtcNow;
+        var from = request.From?.Date ?? DateTime.Now.Date.AddMonths(-1);
+        var to = request.To?.Date.AddDays(1).AddTicks(-1) ?? DateTime.Now;
 
         var invoices = await context.SalesInvoice
             .AsNoTracking()
             .Include(x => x.Items)
-            .Where(x => x.SaleDate >= from && x.SaleDate <= to)
+            .Where(x => !x.IsDeleted && x.SaleDate >= from && x.SaleDate <= to)
             .ToListAsync(cancellationToken);
 
-        var totalSales = invoices.Sum(x => x.GrandTotal);
-        var cashSales = invoices.Where(x => !x.IsDeferredPayment).Sum(x => x.GrandTotal);
-        var deferredSales = invoices.Where(x => x.IsDeferredPayment).Sum(x => x.GrandTotal);
+        var netSales = invoices.Sum(GetInvoiceNetTotal);
+        var cashSales = invoices.Where(x => !x.IsDeferredPayment).Sum(GetInvoiceNetTotal);
+        var deferredSales = invoices.Where(x => x.IsDeferredPayment).Sum(GetInvoiceNetTotal);
 
-        var itemIds = invoices.SelectMany(x => x.Items).Select(x => x.ProductDetailsId).Distinct().ToList();
+        var detailsIds = invoices
+            .SelectMany(x => x.Items.Where(i => !i.IsDeleted))
+            .Select(x => x.ProductDetailsId)
+            .Distinct()
+            .ToList();
+
         var detailsPrices = await context.ProductDetails
             .AsNoTracking()
-            .Where(pd => itemIds.Contains(pd.Id))
+            .Where(pd => detailsIds.Contains(pd.Id))
             .ToDictionaryAsync(pd => pd.Id, pd => pd.Price, cancellationToken);
 
         decimal totalCost = 0;
         foreach (var invoice in invoices)
         {
-            foreach (var item in invoice.Items)
+            foreach (var item in invoice.Items.Where(i => !i.IsDeleted))
             {
                 if (detailsPrices.TryGetValue(item.ProductDetailsId, out var cost))
-                    totalCost += cost * item.Quantity;
+                {
+                    var netQty = item.Quantity - item.ReturnedQuantity;
+                    if (netQty > 0)
+                        totalCost += cost * netQty;
+                }
             }
         }
 
         var outstanding = await context.DeferredPayment
             .AsNoTracking()
+            .Where(d => !d.IsDeleted)
             .SumAsync(d => d.RemainingAmount, cancellationToken);
 
         var inventoryValue = await context.ProductDetails
             .AsNoTracking()
+            .Where(pd => !pd.IsDeleted)
             .SumAsync(pd => pd.Price * pd.RemainingQuantity, cancellationToken);
 
         var topProducts = invoices
-            .SelectMany(x => x.Items)
+            .SelectMany(x => x.Items.Where(i => !i.IsDeleted))
             .GroupBy(x => x.ProductName)
             .Select(g => new TopProductDto(
                 g.Key,
-                g.Sum(x => x.Quantity),
-                g.Sum(x => x.LineTotal)))
+                g.Sum(x => x.Quantity - x.ReturnedQuantity),
+                g.Sum(x => (x.Quantity - x.ReturnedQuantity) * x.UnitPrice)))
+            .Where(x => x.QuantitySold > 0)
             .OrderByDescending(x => x.QuantitySold)
             .Take(5)
             .ToList();
@@ -69,15 +82,15 @@ public sealed class GetFinancialReportQueryHandler(IApplicationDbContext context
             .Select(g => new TopCustomerDto(
                 customers.GetValueOrDefault(g.Key, "—"),
                 g.Count(),
-                g.Sum(x => x.GrandTotal)))
+                g.Sum(GetInvoiceNetTotal)))
             .OrderByDescending(x => x.TotalSpent)
             .Take(5)
             .ToList();
 
         return new FinancialReportDto(
-            totalSales,
+            netSales,
             totalCost,
-            totalSales - totalCost,
+            netSales - totalCost,
             cashSales,
             deferredSales,
             outstanding,
@@ -85,4 +98,9 @@ public sealed class GetFinancialReportQueryHandler(IApplicationDbContext context
             topProducts,
             topCustomers);
     }
+
+    private static decimal GetInvoiceNetTotal(SalesInvoice invoice) =>
+        invoice.Items
+            .Where(i => !i.IsDeleted)
+            .Sum(i => (i.Quantity - i.ReturnedQuantity) * i.UnitPrice);
 }

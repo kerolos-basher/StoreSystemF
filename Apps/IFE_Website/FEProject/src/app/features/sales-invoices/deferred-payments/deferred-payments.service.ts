@@ -15,6 +15,19 @@ export class DeferredPaymentsService {
     return this.api.registerDeferredPayment(deferredPaymentId, amountPaid, notes);
   }
 
+  updatePaymentTransaction(
+    deferredPaymentId: number,
+    transactionId: number,
+    amountPaid: number,
+    notes: string
+  ): Observable<void> {
+    return this.api.updateDeferredPaymentTransaction(deferredPaymentId, transactionId, amountPaid, notes);
+  }
+
+  deletePaymentTransaction(deferredPaymentId: number, transactionId: number): Observable<void> {
+    return this.api.deleteDeferredPaymentTransaction(deferredPaymentId, transactionId);
+  }
+
   getStatement(deferredPaymentId: number): Observable<DeferredPaymentStatement> {
     return this.api.getDeferredPaymentStatement(deferredPaymentId);
   }

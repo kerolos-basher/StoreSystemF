@@ -28,7 +28,7 @@ public sealed class SalesInvoice : ParentEntity
         EnsureValidId(id);
         Id = id;
         InvoiceNumber = $"INV-{id}";
-        SaleDate = DateTime.UtcNow;
+        SaleDate = DateTime.Now;
         CustomerId = customerId;
         Notes = notes?.Trim() ?? string.Empty;
         IsDeferredPayment = isDeferredPayment;
@@ -106,9 +106,18 @@ public sealed class SalesInvoice : ParentEntity
         MarkUpdated();
     }
 
+    public void RecalculateAfterReturn()
+    {
+        foreach (var item in _items.Where(x => !x.IsDeleted && x.AvailableForReturn <= 0))
+            item.SoftDelete();
+
+        RecalculateTotals();
+        MarkUpdated();
+    }
+
     private void RecalculateTotals()
     {
-        Subtotal = _items.Where(x => !x.IsDeleted).Sum(x => x.LineTotal);
+        Subtotal = _items.Where(x => !x.IsDeleted).Sum(x => x.NetLineTotal);
         GrandTotal = Subtotal;
     }
 }

@@ -1,4 +1,6 @@
+using Application.DeferredPayments.Commands.DeleteDeferredPaymentTransaction;
 using Application.DeferredPayments.Commands.UpdateDeferredPayment;
+using Application.DeferredPayments.Commands.UpdateDeferredPaymentTransaction;
 using Application.DeferredPayments.Queries.SearchDeferredPayments;
 using Infrastructure.Services.LogFile;
 using MediatR;
@@ -55,6 +57,28 @@ public sealed class DeferredPaymentsController : StoreBaseController
         TryCatchLogAsync(async () =>
         {
             await _sender.Send(new UpdateDeferredPaymentCommand(id, request.AmountPaid, request.Notes), cancellationToken);
+            return Ok();
+        });
+
+    [HttpPut("{id}/payments/{transactionId}")]
+    public Task<IActionResult> UpdatePayment(
+        long id,
+        long transactionId,
+        [FromBody] RegisterPaymentRequest request,
+        CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            await _sender.Send(
+                new UpdateDeferredPaymentTransactionCommand(id, transactionId, request.AmountPaid, request.Notes),
+                cancellationToken);
+            return Ok();
+        });
+
+    [HttpDelete("{id}/payments/{transactionId}")]
+    public Task<IActionResult> DeletePayment(long id, long transactionId, CancellationToken cancellationToken) =>
+        TryCatchLogAsync(async () =>
+        {
+            await _sender.Send(new DeleteDeferredPaymentTransactionCommand(id, transactionId), cancellationToken);
             return Ok();
         });
 

@@ -15,14 +15,27 @@
     } @else {
       <table class="data-table">
         <thead>
-          <tr><th>التاريخ</th><th>المبلغ</th><th>ملاحظات</th></tr>
+          <tr><th>التاريخ</th><th>المبلغ</th><th>ملاحظات</th><th>إجراءات</th></tr>
         </thead>
         <tbody>
           @for (t of statement()!.transactions; track t.id) {
             <tr>
               <td>{{ t.paymentDate | date:'dd/MM/yyyy HH:mm' }}</td>
-              <td class="gold">{{ t.amountPaid | number:'1.2-2' }}</td>
-              <td>{{ t.notes || '—' }}</td>
+              @if (editingTransactionId() === t.id) {
+                <td><input type="number" class="form-input" min="0.01" step="0.01" [(ngModel)]="editAmount" /></td>
+                <td><input class="form-input" [(ngModel)]="editNotes" placeholder="ملاحظات" /></td>
+                <td class="actions-cell">
+                  <button type="button" class="btn-primary small" [disabled]="saving()" (click)="saveEdit()">حفظ</button>
+                  <button type="button" class="btn-secondary small" (click)="cancelEdit()">إلغاء</button>
+                </td>
+              } @else {
+                <td class="gold">{{ t.amountPaid | number:'1.2-2' }}</td>
+                <td>{{ t.notes || '—' }}</td>
+                <td class="actions-cell">
+                  <button type="button" class="btn-secondary small" (click)="startEdit(t.id, t.amountPaid, t.notes)">تعديل</button>
+                  <button type="button" class="btn-secondary small danger" [disabled]="saving()" (click)="deleteTransaction(t.id)">حذف</button>
+                </td>
+              }
             </tr>
           }
         </tbody>
@@ -31,5 +44,5 @@
   }
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button type="button" class="btn-secondary" mat-dialog-close>إغلاق</button>
+  <button type="button" class="btn-secondary" (click)="close()">إغلاق</button>
 </mat-dialog-actions>

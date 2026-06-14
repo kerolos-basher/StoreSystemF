@@ -75,7 +75,7 @@ namespace DBMigration.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Category");
+                    b.ToTable("Category", (string)null);
                 });
 
             modelBuilder.Entity("Domain.CustomerAggregate.Customer", b =>
@@ -254,7 +254,7 @@ namespace DBMigration.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InventoryTransaction");
+                    b.ToTable("InventoryTransaction", (string)null);
                 });
 
             modelBuilder.Entity("Domain.LookupAggregate.ReturnReason", b =>
@@ -303,7 +303,7 @@ namespace DBMigration.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Product");
+                    b.ToTable("Product", (string)null);
                 });
 
             modelBuilder.Entity("Domain.ProductAggregate.ProductDetails", b =>
@@ -366,7 +366,7 @@ namespace DBMigration.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("ProductDetails");
+                    b.ToTable("ProductDetails", (string)null);
                 });
 
             modelBuilder.Entity("Domain.ReturnsAggregate.ReturnInvoice", b =>
@@ -409,7 +409,7 @@ namespace DBMigration.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReturnInvoice");
+                    b.ToTable("ReturnInvoice", (string)null);
                 });
 
             modelBuilder.Entity("Domain.ReturnsAggregate.ReturnInvoiceItem", b =>
@@ -463,7 +463,7 @@ namespace DBMigration.Migrations
 
                     b.HasIndex("ReturnInvoiceId");
 
-                    b.ToTable("ReturnInvoiceItem");
+                    b.ToTable("ReturnInvoiceItem", (string)null);
                 });
 
             modelBuilder.Entity("Domain.SalesAggregate.SalesInvoice", b =>
@@ -514,7 +514,7 @@ namespace DBMigration.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("SalesInvoice");
+                    b.ToTable("SalesInvoice", (string)null);
                 });
 
             modelBuilder.Entity("Domain.SalesAggregate.SalesInvoiceItem", b =>
@@ -565,7 +565,7 @@ namespace DBMigration.Migrations
 
                     b.HasIndex("SalesInvoiceId");
 
-                    b.ToTable("SalesInvoiceItem");
+                    b.ToTable("SalesInvoiceItem", (string)null);
                 });
 
             modelBuilder.Entity("Domain.SupplierAggregate.Supplier", b =>
@@ -593,7 +593,7 @@ namespace DBMigration.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Supplier");
+                    b.ToTable("Supplier", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

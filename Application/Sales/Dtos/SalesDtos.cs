@@ -33,6 +33,7 @@ public sealed record SalesInvoiceItemDto(
     int ReturnedQuantity,
     int AvailableForReturn,
     int StockAvailable,
+    decimal PurchasePrice,
     decimal UnitPrice,
     decimal LineTotal,
     string Notes);

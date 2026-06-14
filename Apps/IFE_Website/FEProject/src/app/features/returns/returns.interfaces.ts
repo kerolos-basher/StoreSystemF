@@ -11,6 +11,8 @@ export interface ReturnLineDraft {
   salesInvoiceItemId: number;
   productName: string;
   availableForReturn: number;
+  soldUnitPrice: number;
+  unitPrice: number;
   quantity: number;
   itemReasonType: number;
   notes: string;

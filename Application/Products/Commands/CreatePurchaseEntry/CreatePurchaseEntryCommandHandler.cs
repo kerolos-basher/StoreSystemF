@@ -21,7 +21,9 @@ public sealed class CreatePurchaseEntryCommandHandler(
         var sellingPrice = request.SellingPrice > 0 ? request.SellingPrice : request.PurchasePrice;
         var supplierId = await ResolveSupplierIdAsync(request.SupplierName, cancellationToken);
         var barCode = string.IsNullOrWhiteSpace(request.Barcode) ? null : request.Barcode.Trim();
-        var purchaseDate = request.PurchaseDate?.ToUniversalTime();
+        var purchaseDate = request.PurchaseDate.HasValue
+            ? request.PurchaseDate.Value.Date
+            : (DateTime?)null;
 
         var product = await FindProductAsync(productName, request.ExistingProductId, cancellationToken);
         long productDetailsId;

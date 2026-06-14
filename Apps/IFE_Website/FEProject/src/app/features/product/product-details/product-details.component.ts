@@ -130,35 +130,20 @@ export class ProductDetailsComponent implements OnInit {
     });
   }
 
-  deleteLine(lineId: string, force = false): void {
-    const title = force ? 'حذف إجباري' : 'حذف الدفعة';
-    const message = force ? 'هل تريد الحذف الإجباري لهذه الدفعة؟' : 'هل تريد حذف هذه الدفعة؟';
+  deleteLine(lineId: string): void {
     this.appDialog.confirm({
-      title,
-      message,
+      title: 'حذف الدفعة',
+      message: 'هل تريد حذف هذه الدفعة؟ لا يمكن الحذف إذا كانت مرتبطة بفاتورة مبيعات.',
       confirmText: 'حذف',
       danger: true
     }).subscribe(confirmed => {
       if (!confirmed) return;
-      this.detailsService.deleteProductDetails(this.details().id, lineId, force).subscribe({
+      this.detailsService.deleteProductDetails(this.details().id, lineId).subscribe({
         next: () => {
           this.reloadDetails();
           this.snackBar.open('تم الحذف', 'إغلاق', { duration: 2500 });
         },
-        error: err => {
-          if (!force) {
-            this.appDialog.confirm({
-              title: 'فشل الحذف',
-              message: 'فشل الحذف — هل تريد الحذف الإجباري؟',
-              confirmText: 'حذف إجباري',
-              danger: true
-            }).subscribe(forceConfirmed => {
-              if (forceConfirmed) this.deleteLine(lineId, true);
-            });
-          } else {
-            this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 });
-          }
-        }
+        error: err => this.snackBar.open(err?.error?.message ?? 'فشل الحذف', 'إغلاق', { duration: 3500 })
       });
     });
   }

@@ -10,6 +10,7 @@ import {
   Supplier
 } from '../../shared/models/inventory.models';
 import { environment } from '../../../environments/environment';
+import { formatLocalDate } from '../../shared/utils/date-format';
 
 export interface UpdateSalesInvoiceItem {
   id?: number | null;
@@ -100,7 +101,16 @@ export class InventoryApiService {
   }
 
   createPurchaseEntry(payload: CreatePurchaseEntryRequest): Observable<CreatePurchaseEntryResult> {
-    return this.http.post<CreatePurchaseEntryResult>(`${this.baseUrl}/products/purchase-entry`, payload);
+    const body = {
+      ...payload,
+      purchaseDate: payload.purchaseDate ? this.formatDateOnly(payload.purchaseDate) : null
+    };
+    return this.http.post<CreatePurchaseEntryResult>(`${this.baseUrl}/products/purchase-entry`, body);
+  }
+
+  private formatDateOnly(value: Date | string): string {
+    const date = value instanceof Date ? value : new Date(value);
+    return formatLocalDate(date);
   }
 
   searchProducts(query: Record<string, string | number | boolean>): Observable<PagedResult<ProductListItem>> {
@@ -207,6 +217,22 @@ export class InventoryApiService {
 
   registerDeferredPayment(deferredPaymentId: number, amountPaid: number, notes: string): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/deferred-payments/${deferredPaymentId}/payments`, { amountPaid, notes });
+  }
+
+  updateDeferredPaymentTransaction(
+    deferredPaymentId: number,
+    transactionId: number,
+    amountPaid: number,
+    notes: string
+  ): Observable<void> {
+    return this.http.put<void>(
+      `${this.baseUrl}/deferred-payments/${deferredPaymentId}/payments/${transactionId}`,
+      { amountPaid, notes }
+    );
+  }
+
+  deleteDeferredPaymentTransaction(deferredPaymentId: number, transactionId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/deferred-payments/${deferredPaymentId}/payments/${transactionId}`);
   }
 
   getFinancialReport(from?: string, to?: string): Observable<FinancialReport> {

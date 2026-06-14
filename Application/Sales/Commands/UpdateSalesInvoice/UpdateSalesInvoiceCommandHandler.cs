@@ -78,6 +78,13 @@ public sealed class UpdateSalesInvoiceCommandHandler(
         }
 
         invoice.FinalizeInvoice();
+
+        var deferredPayment = await context.DeferredPayment
+            .FirstOrDefaultAsync(d => d.SalesInvoiceId == invoice.Id && !d.IsDeleted, cancellationToken);
+
+        if (deferredPayment is not null)
+            deferredPayment.SyncInvoiceTotal(invoice.GrandTotal);
+
         await context.SaveChangesAsync();
     }
 

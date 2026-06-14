@@ -32,11 +32,14 @@
     </form>
 
     <form [formGroup]="productSearchForm" class="product-search-form">
-      <mat-form-field appearance="outline">
-        <mat-label>الباركود</mat-label>
-        <input matInput formControlName="barcode" (keyup.enter)="lookupBarcode()" />
-      </mat-form-field>
-      <button type="button" class="btn-primary" (click)="lookupBarcode()">بحث</button>
+      <div class="barcode-scan-row">
+        <mat-form-field appearance="outline" class="barcode-field">
+          <mat-label>الباركود (ماسح Xprinter)</mat-label>
+          <input #barcodeInput matInput formControlName="barcode" (keydown)="onBarcodeKeyDown($event)" />
+        </mat-form-field>
+        <button type="button" class="btn-primary" (click)="lookupBarcode()">بحث</button>
+      </div>
+      <p class="scan-hint">وجّه الماسح الضوئي نحو حقل الباركود — يتم الإدخال تلقائياً ثم Enter</p>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>اسم الصنف</mat-label>
@@ -45,7 +48,7 @@
           @for (item of filteredProducts$ | async; track item.productDetailsId) {
             <mat-option [value]="item">
               {{ item.productName }} — {{ item.supplierName }}
-              <span class="money-value">({{ item.suggestedSellingPrice | number:'1.2-2' }} ج.م)</span>
+              <span class="money-value">(شراء: {{ item.purchasePrice | number:'1.2-2' }} — بيع: {{ item.suggestedSellingPrice | number:'1.2-2' }} ج.م)</span>
             </mat-option>
           }
         </mat-autocomplete>
@@ -53,7 +56,7 @@
     </form>
 
     @if (store.items().length === 0) {
-      <div class="empty-state">لا توجد أصناف — ابحث بالاسم أو امسح منتجاً للبدء</div>
+      <div class="empty-state">لا توجد أصناف — امسح الباركود أو ابحث بالاسم للبدء</div>
     } @else {
       <div class="invoice-lines">
         @for (item of store.items(); track item.productDetailsId) {
@@ -109,13 +112,7 @@
 
     <button class="btn-primary sale-btn" type="button"
       [disabled]="store.items().length === 0 || completing()" (click)="completeSale()">
-      {{ completing() ? 'جاري الحفظ...' : 'تم البيع' }}
+      {{ completing() ? 'جاري الحفظ...' : 'تم البيع وطباعة الإيصال' }}
     </button>
-  </div>
-
-  <div class="panel-card scan-panel">
-    <h2>الماسح الضوئي</h2>
-    <p>امسح رمز QR لإضافة المنتج للفاتورة</p>
-    <app-barcode-scanner (scanned)="onScan($event)" />
   </div>
 </section>

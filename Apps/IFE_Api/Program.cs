@@ -11,6 +11,7 @@ using Microsoft.Extensions.FileProviders;
 using System.Globalization;
 using System.Text.Json;
 using Utilities.Config;
+using Utilities.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,8 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Converters.Add(new LocalDateTimeConverter());
+        options.JsonSerializerOptions.Converters.Add(new NullableLocalDateTimeConverter());
     });
 builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 builder.Services.AddApplicationServices();

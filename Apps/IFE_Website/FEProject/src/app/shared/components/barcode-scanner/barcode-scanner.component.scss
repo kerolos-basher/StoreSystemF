@@ -1,43 +1,30 @@
 .scanner-wrap {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border-color);
-}
-
-.scanner-idle {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: 200px;
-  padding: var(--space-3);
-  text-align: center;
-
-  p {
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-  }
-}
-
-.scanner-live {
-  [id^='barcode-scanner-region'] {
-    min-height: 280px;
-  }
-}
-
-.scanner-stop {
-  width: 100%;
-  border-radius: 0 !important;
-  border: none !important;
-  border-top: 1px solid var(--border-color) !important;
-}
-
-.scanner-error {
-  color: var(--color-danger);
+  gap: var(--space-1);
   padding: var(--space-2);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.scanner-hint {
   margin: 0;
-  text-align: center;
-  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.scanner-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-white);
+  font-size: 0.95rem;
+}
+
+.scanner-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
 }

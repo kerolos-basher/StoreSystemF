@@ -33,7 +33,7 @@ public sealed class InventoryTransaction : ParentEntity
         ReturnInvoiceId = returnInvoiceId;
         QuantityChange = quantityChange;
         TransactionType = transactionType;
-        TransactionDate = DateTime.UtcNow;
+        TransactionDate = DateTime.Now;
         Reference = reference;
     }
 

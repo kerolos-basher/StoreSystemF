@@ -22,7 +22,7 @@ public sealed class DeferredPaymentTransaction : ParentEntity
         Id = id;
         DeferredPaymentId = deferredPaymentId;
         AmountPaid = amountPaid;
-        PaymentDate = DateTime.UtcNow;
+        PaymentDate = DateTime.Now;
         Notes = notes?.Trim() ?? string.Empty;
         CreatedBy = createdBy;
     }
@@ -34,4 +34,14 @@ public sealed class DeferredPaymentTransaction : ParentEntity
         string? notes,
         long createdBy) =>
         new(id, deferredPaymentId, amountPaid, notes, createdBy);
+
+    internal void Update(decimal amountPaid, string? notes)
+    {
+        if (amountPaid <= 0)
+            throw new StoreException("المبلغ المدفوع يجب أن يكون أكبر من صفر.");
+
+        AmountPaid = amountPaid;
+        Notes = notes?.Trim() ?? string.Empty;
+        MarkUpdated();
+    }
 }

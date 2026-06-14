@@ -13,6 +13,7 @@ public sealed class SalesInvoiceItem : ParentEntity
     public int AvailableForReturn => Quantity - ReturnedQuantity;
     public decimal UnitPrice { get; private set; }
     public decimal LineTotal => Quantity * UnitPrice;
+    public decimal NetLineTotal => (Quantity - ReturnedQuantity) * UnitPrice;
     public string Notes { get; private set; } = string.Empty;
 
     private SalesInvoiceItem()

@@ -1,12 +1,12 @@
 import { AsyncPipe, DecimalPipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged, filter, Observable, switchMap } from 'rxjs';
-import { BarcodeScannerComponent } from '../../shared/components/barcode-scanner/barcode-scanner.component';
+import { ReceiptPrintService } from '../../shared/services/receipt-print.service';
 import { ProductDetailsAutoComplete, ProductDetailsSearch } from '../../shared/models/inventory.models';
 import { displayProductWithSupplier } from '../../shared/utils/product-autocomplete-display';
 import { PriceCheckService } from './price-check.service';
@@ -21,16 +21,18 @@ import { PriceCheckService } from './price-check.service';
     MatFormFieldModule,
     MatInputModule,
     MatAutocompleteModule,
-    MatSnackBarModule,
-    BarcodeScannerComponent
+    MatSnackBarModule
   ],
   templateUrl: './price-check.component.html',
   styleUrl: './price-check.component.scss'
 })
-export class PriceCheckComponent implements OnInit {
+export class PriceCheckComponent implements OnInit, AfterViewInit {
   private readonly service = inject(PriceCheckService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly printService = inject(ReceiptPrintService);
+
+  @ViewChild('barcodeInput') barcodeInput?: ElementRef<HTMLInputElement>;
 
   readonly loading = signal(false);
   readonly result = signal<ProductDetailsSearch | null>(null);
@@ -40,6 +42,10 @@ export class PriceCheckComponent implements OnInit {
     barcode: [''],
     productName: ['']
   });
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.barcodeInput?.nativeElement.focus(), 0);
+  }
 
   ngOnInit(): void {
     this.filteredProducts$ = this.searchForm.controls.productName.valueChanges.pipe(
@@ -52,6 +58,26 @@ export class PriceCheckComponent implements OnInit {
 
   onScan(barcode: string): void {
     this.lookup(barcode);
+  }
+
+  onBarcodeKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.lookupBarcode();
+    }
+  }
+
+  printLabel(): void {
+    const product = this.result();
+    if (!product) return;
+
+    this.printService.printPriceLabel({
+      productName: product.productName,
+      barcode: product.barcode,
+      suggestedPrice: product.suggestedSellingPrice,
+      purchasePrice: product.purchasePrice,
+      supplierName: product.supplierName
+    });
   }
 
   lookupBarcode(): void {

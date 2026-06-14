@@ -79,6 +79,69 @@ public sealed class DeferredPayment : ParentEntity
         MarkUpdated();
     }
 
+    public void UpdateTransaction(long transactionId, decimal amountPaid, string? notes)
+    {
+        var transaction = _transactions.FirstOrDefault(x => x.Id == transactionId)
+            ?? throw new StoreException("الدفعة غير موجودة.");
+
+        if (amountPaid <= 0)
+            throw new StoreException("المبلغ المدفوع يجب أن يكون أكبر من صفر.");
+
+        var otherPaid = PaidAmount - transaction.AmountPaid;
+        var newTotalPaid = otherPaid + amountPaid;
+
+        if (newTotalPaid > TotalAmount)
+            throw new StoreException($"المبلغ المدفوع ({newTotalPaid}) أكبر من إجمالي الفاتورة ({TotalAmount}).");
+
+        transaction.Update(amountPaid, notes);
+        PaidAmount = newTotalPaid;
+        RemainingAmount = TotalAmount - PaidAmount;
+        IsFullyPaid = RemainingAmount <= 0;
+        MarkUpdated();
+    }
+
+    public void DeleteTransaction(long transactionId)
+    {
+        var transaction = _transactions.FirstOrDefault(x => x.Id == transactionId)
+            ?? throw new StoreException("الدفعة غير موجودة.");
+
+        PaidAmount -= transaction.AmountPaid;
+        RemainingAmount = TotalAmount - PaidAmount;
+        IsFullyPaid = RemainingAmount <= 0;
+        _transactions.Remove(transaction);
+        MarkUpdated();
+    }
+
+    public void AdjustTotalForReturn(decimal returnAmount)
+    {
+        if (returnAmount <= 0)
+            return;
+
+        TotalAmount = Math.Max(0, TotalAmount - returnAmount);
+
+        if (PaidAmount > TotalAmount)
+            PaidAmount = TotalAmount;
+
+        RemainingAmount = TotalAmount - PaidAmount;
+        IsFullyPaid = RemainingAmount <= 0;
+        MarkUpdated();
+    }
+
+    public void SyncInvoiceTotal(decimal newTotal)
+    {
+        if (newTotal <= 0)
+            throw new Exception("إجمالي الفاتورة يجب أن يكون أكبر من صفر.");
+
+        TotalAmount = newTotal;
+
+        if (PaidAmount > TotalAmount)
+            PaidAmount = TotalAmount;
+
+        RemainingAmount = TotalAmount - PaidAmount;
+        IsFullyPaid = RemainingAmount <= 0;
+        MarkUpdated();
+    }
+
     public void SoftDelete()
     {
         IsDeleted = true;

@@ -1,89 +1,158 @@
 <section class="panel-card returns-card">
   <header class="page-header">
     <h1>المرتجعات</h1>
-    <p>مستند مرتجع مستقل مرتبط بالفاتورة الأصلية — لا يتم تعديل الفاتورة الأصلية.</p>
+    <p>سجّل مرتجعاً جديداً عبر خطوات واضحة: البحث عن الفاتورة، اختيارها، ثم تحديد الأصناف المراد إرجاعها.</p>
   </header>
 
-  <form [formGroup]="searchForm" class="search-row">
-    <mat-form-field appearance="outline">
-      <mat-label>رقم فاتورة المبيعات</mat-label>
-      <input matInput formControlName="invoiceNumber" (keyup.enter)="loadByInvoiceNumber()" />
-    </mat-form-field>
-    <button class="btn-primary" type="button" (click)="loadByInvoiceNumber()">تحميل الفاتورة</button>
+  <nav class="step-indicator" aria-label="خطوات تسجيل المرتجع">
+    <span class="step" [class.active]="currentStep() === 'search'" [class.done]="currentStep() !== 'search'">1. البحث</span>
+    <span class="step" [class.active]="currentStep() === 'select'" [class.done]="currentStep() === 'create'">2. اختيار الفاتورة</span>
+    <span class="step" [class.active]="currentStep() === 'create'">3. تسجيل المرتجع</span>
+  </nav>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>أو ابحث بالعميل</mat-label>
-      <input matInput formControlName="customerName" [matAutocomplete]="customerAuto" />
-      <mat-autocomplete #customerAuto="matAutocomplete" [displayWith]="displayCustomer.bind(this)" (optionSelected)="selectCustomer($event.option.value)">
-        @for (c of filteredCustomers$ | async; track c.id) {
-          <mat-option [value]="c">{{ c.name }} — {{ c.phone }}</mat-option>
-        }
-      </mat-autocomplete>
-    </mat-form-field>
-  </form>
+  @if (currentStep() === 'search') {
+    <section class="step-panel">
+      <h2>الخطوة 1 — البحث عن فاتورة المبيعات</h2>
+      <form [formGroup]="searchForm" class="search-grid" (ngSubmit)="searchInvoices()">
+        <div class="search-group">
+          <h3>برقم الفاتورة</h3>
+          <mat-form-field appearance="outline">
+            <mat-label>رقم فاتورة المبيعات</mat-label>
+            <input matInput formControlName="invoiceNumber" />
+          </mat-form-field>
+        </div>
 
-  @if (customerInvoices().length > 0) {
-    <div class="customer-invoices">
-      <h3>فواتير العميل</h3>
-      <div class="invoice-chips">
-        @for (inv of customerInvoices(); track inv.id) {
-          <button type="button" class="btn-secondary chip" (click)="loadCustomerInvoice(inv)">
-            {{ inv.invoiceNumber }} — {{ inv.grandTotal | number:'1.2-2' }} ج.م
+        <div class="search-group">
+          <h3>باسم المنتج أو التاريخ</h3>
+          <mat-form-field appearance="outline">
+            <mat-label>اسم المنتج</mat-label>
+            <input matInput formControlName="productName" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>تاريخ الفاتورة</mat-label>
+            <input matInput [matDatepicker]="saleDatePicker" formControlName="saleDate" />
+            <mat-datepicker-toggle matSuffix [for]="saleDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #saleDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div class="search-group full-width">
+          <h3>بالعميل</h3>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>اسم أو هاتف العميل</mat-label>
+            <input matInput formControlName="customerName" [matAutocomplete]="customerAuto" />
+            <mat-autocomplete #customerAuto="matAutocomplete" [displayWith]="displayCustomer.bind(this)" (optionSelected)="selectCustomer($event.option.value)">
+              @for (c of filteredCustomers$ | async; track c.id) {
+                <mat-option [value]="c">{{ c.name }} — {{ c.phone }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+
+        <div class="search-actions full-width">
+          <button class="btn-primary" type="submit" [disabled]="searchingInvoices()">
+            {{ searchingInvoices() ? 'جاري البحث...' : 'بحث عن الفواتير' }}
           </button>
-        }
-      </div>
-    </div>
+        </div>
+      </form>
+    </section>
   }
 
-  @if (selectedInvoices().length > 0) {
-    <div class="form-row">
-      <label>سبب المرتجع العام
-        <select class="form-input" [(ngModel)]="returnReasonType" [ngModelOptions]="{standalone: true}">
-          @for (reason of returnReasons(); track reason.id) {
-            <option [ngValue]="reason.id">{{ reason.name }}</option>
-          }
-        </select>
-      </label>
-    </div>
+  @if (currentStep() === 'select') {
+    <section class="step-panel">
+      <div class="step-toolbar">
+        <h2>الخطوة 2 — اختر الفاتورة</h2>
+        <button type="button" class="btn-secondary small" (click)="backToSearch()">رجوع للبحث</button>
+      </div>
 
-    @for (invoice of selectedInvoices(); track invoice.id) {
-      <section class="invoice-return-block">
-        <div class="block-header">
-          <h3>الفاتورة: {{ invoice.invoiceNumber }}</h3>
-          <button type="button" class="btn-secondary small danger" (click)="removeInvoice(invoice.id)">إزالة</button>
-        </div>
+      @if (searchingInvoices()) {
+        @for (i of [1,2,3]; track i) {
+          <div class="skeleton" style="height:48px;margin-bottom:0.5rem"></div>
+        }
+      } @else if (searchResults().length === 0) {
+        <div class="empty-state">لا توجد نتائج — عدّل معايير البحث</div>
+      } @else {
+        <table class="data-table results-table">
+          <thead>
+            <tr>
+              <th>رقم الفاتورة</th>
+              <th>التاريخ</th>
+              <th>العميل</th>
+              <th>الأصناف</th>
+              <th>الإجمالي</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (inv of searchResults(); track inv.id) {
+              <tr>
+                <td>{{ inv.invoiceNumber }}</td>
+                <td>{{ inv.saleDate | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ inv.customerName || '—' }}</td>
+                <td>{{ inv.itemCount }}</td>
+                <td class="gold">{{ inv.grandTotal | number:'1.2-2' }} ج.م</td>
+                <td>
+                  <button type="button" class="btn-primary small" (click)="chooseInvoice(inv)">اختيار</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
 
-        <div class="return-lines">
-          @for (line of invoice.lines; track line.salesInvoiceItemId) {
-            <article class="return-line">
-              <div class="line-head">
-                <strong>{{ line.productName }}</strong>
-                <span>متاح للإرجاع: {{ line.availableForReturn }}</span>
-              </div>
-              <div class="line-controls">
-                <label>الكمية
-                  <input type="number" class="form-input" min="0" [max]="line.availableForReturn" [(ngModel)]="line.quantity" [ngModelOptions]="{standalone: true}" />
-                </label>
-                <label>سبب الصنف
-                  <select class="form-input" [(ngModel)]="line.itemReasonType" [ngModelOptions]="{standalone: true}">
-                    @for (reason of returnReasons(); track reason.id) {
-                      <option [ngValue]="reason.id">{{ reason.name }}</option>
-                    }
-                  </select>
-                </label>
-                <input class="form-input" placeholder="ملاحظات..." [(ngModel)]="line.notes" [ngModelOptions]="{standalone: true}" />
-              </div>
-            </article>
-          }
-        </div>
+  @if (currentStep() === 'create' && activeInvoice(); as invoice) {
+    <section class="step-panel">
+      <div class="step-toolbar">
+        <h2>الخطوة 3 — تسجيل المرتجع للفاتورة {{ invoice.invoiceNumber }}</h2>
+        <button type="button" class="btn-secondary small" (click)="backToSelect()">رجوع للنتائج</button>
+      </div>
 
-        <button class="btn-primary" type="button" [disabled]="saving()" (click)="submitReturn(invoice)">
-          {{ saving() ? 'جاري الحفظ...' : 'تسجيل مرتجع هذه الفاتورة' }}
-        </button>
-      </section>
-    }
+      <div class="form-row">
+        <label>سبب المرتجع العام
+          <select class="form-input" [(ngModel)]="returnReasonType" [ngModelOptions]="{standalone: true}">
+            @for (reason of returnReasons(); track reason.id) {
+              <option [ngValue]="reason.id">{{ reason.name }}</option>
+            }
+          </select>
+        </label>
+      </div>
 
-    <textarea class="form-input notes-area" placeholder="ملاحظات المرتجع..." [(ngModel)]="notes" [ngModelOptions]="{standalone: true}"></textarea>
+      <div class="return-lines">
+        @for (line of invoice.lines; track line.salesInvoiceItemId) {
+          <article class="return-line">
+            <div class="line-head">
+              <strong>{{ line.productName }}</strong>
+              <span>متاح للإرجاع: {{ line.availableForReturn }}</span>
+              <span class="muted">سعر البيع: {{ line.soldUnitPrice | number:'1.2-2' }} ج.م</span>
+            </div>
+            <div class="line-controls">
+              <label>الكمية
+                <input type="number" class="form-input" min="0" [max]="line.availableForReturn" [(ngModel)]="line.quantity" [ngModelOptions]="{standalone: true}" />
+              </label>
+              <label>سعر الإرجاع
+                <input type="number" class="form-input" min="0.01" step="0.01" [(ngModel)]="line.unitPrice" [ngModelOptions]="{standalone: true}" />
+              </label>
+              <label>سبب الصنف
+                <select class="form-input" [(ngModel)]="line.itemReasonType" [ngModelOptions]="{standalone: true}">
+                  @for (reason of returnReasons(); track reason.id) {
+                    <option [ngValue]="reason.id">{{ reason.name }}</option>
+                  }
+                </select>
+              </label>
+              <input class="form-input" placeholder="ملاحظات..." [(ngModel)]="line.notes" [ngModelOptions]="{standalone: true}" />
+            </div>
+          </article>
+        }
+      </div>
+
+      <textarea class="form-input notes-area" placeholder="ملاحظات المرتجع..." [(ngModel)]="notes" [ngModelOptions]="{standalone: true}"></textarea>
+
+      <button class="btn-primary" type="button" [disabled]="saving()" (click)="submitReturn()">
+        {{ saving() ? 'جاري الحفظ...' : 'تأكيد تسجيل المرتجع' }}
+      </button>
+    </section>
   }
 </section>
 

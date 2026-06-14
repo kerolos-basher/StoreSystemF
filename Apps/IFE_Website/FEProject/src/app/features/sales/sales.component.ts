@@ -1,5 +1,5 @@
 import { AsyncPipe, DecimalPipe } from '@angular/common';
-import { Component, OnInit, effect, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged, filter, Observable, switchMap } from 'rxjs';
 import { SalesStore } from '../../core/stores/sales.store';
-import { BarcodeScannerComponent } from '../../shared/components/barcode-scanner/barcode-scanner.component';
+import { ReceiptPrintService } from '../../shared/services/receipt-print.service';
 import { CustomerAutoComplete, ProductDetailsAutoComplete, ProductDetailsSearch } from '../../shared/models/inventory.models';
 import { displayProductWithSupplier } from '../../shared/utils/product-autocomplete-display';
 import { SalesService } from './sales.service';
@@ -25,17 +25,19 @@ import { SalesService } from './sales.service';
     MatInputModule,
     MatAutocompleteModule,
     MatCheckboxModule,
-    MatSnackBarModule,
-    BarcodeScannerComponent
+    MatSnackBarModule
   ],
   templateUrl: './sales.component.html',
   styleUrl: './sales.component.scss'
 })
-export class SalesComponent implements OnInit {
+export class SalesComponent implements OnInit, AfterViewInit {
   private readonly service = inject(SalesService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly fb = inject(FormBuilder);
+  private readonly printService = inject(ReceiptPrintService);
   readonly store = inject(SalesStore);
+
+  @ViewChild('barcodeInput') barcodeInput?: ElementRef<HTMLInputElement>;
 
   readonly completing = signal(false);
   filteredCustomers$!: Observable<CustomerAutoComplete[]>;
@@ -64,6 +66,14 @@ export class SalesComponent implements OnInit {
     }
   });
 
+  ngAfterViewInit(): void {
+    this.focusBarcodeInput();
+  }
+
+  focusBarcodeInput(): void {
+    setTimeout(() => this.barcodeInput?.nativeElement.focus(), 0);
+  }
+
   ngOnInit(): void {
     this.filteredCustomers$ = this.customerForm.controls.customerName.valueChanges.pipe(
       debounceTime(300),
@@ -91,6 +101,13 @@ export class SalesComponent implements OnInit {
 
   onScan(barcode: string): void {
     this.lookupBarcode(barcode);
+  }
+
+  onBarcodeKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.lookupBarcode();
+    }
   }
 
   lookupBarcode(barcode?: string): void {
@@ -208,13 +225,21 @@ export class SalesComponent implements OnInit {
     }
 
     this.completing.set(true);
+    const saleItems = this.store.items().map(x => ({
+      productDetailsId: x.productDetailsId,
+      quantity: x.quantity,
+      unitPrice: x.unitPrice,
+      notes: x.notes ?? ''
+    }));
+    const receiptItems = this.store.items().map(x => ({
+      productName: x.productName,
+      quantity: x.quantity,
+      unitPrice: x.unitPrice
+    }));
+    const grandTotal = this.store.grandTotal();
+
     this.service.createSale(
-      this.store.items().map(x => ({
-        productDetailsId: x.productDetailsId,
-        quantity: x.quantity,
-        unitPrice: x.unitPrice,
-        notes: x.notes ?? ''
-      })),
+      saleItems,
       raw.customerName ?? '',
       raw.customerPhone ?? '',
       this.store.customerId(),
@@ -224,10 +249,20 @@ export class SalesComponent implements OnInit {
     ).subscribe({
       next: result => {
         this.completing.set(false);
+        this.printService.printSaleReceipt({
+          invoiceNumber: result.invoiceNumber,
+          items: receiptItems,
+          grandTotal,
+          amountPaid,
+          remainingAmount: Math.max(0, grandTotal - amountPaid),
+          isDeferred,
+          customerName: raw.customerName ?? ''
+        });
         this.store.clear();
         this.customerForm.reset({ customerName: '', customerPhone: '', isDeferredPayment: false, amountPaid: 0 });
         this.customerForm.controls.amountPaid.disable();
         this.productSearchForm.reset({ barcode: '', productName: '' });
+        this.focusBarcodeInput();
         this.snackBar.open(`تم البيع — فاتورة ${result.invoiceNumber}`, 'إغلاق', { duration: 4000 });
       },
       error: () => {

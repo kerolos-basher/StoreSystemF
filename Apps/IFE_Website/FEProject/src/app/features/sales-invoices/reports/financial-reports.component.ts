@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
 import { DecimalPipe } from '@angular/common';
 import { FinancialReport } from '../../../shared/models/inventory.models';
+import { formatLocalDate } from '../../../shared/utils/date-format';
 import { FinancialReportsService } from './financial-reports.service';
 
 @Component({
@@ -59,8 +60,8 @@ export class FinancialReportsComponent implements OnInit {
   loadReport(): void {
     this.loading.set(true);
     const raw = this.filtersForm.getRawValue();
-    const from = raw.dateFrom?.toISOString();
-    const to = raw.dateTo?.toISOString();
+    const from = raw.dateFrom ? formatLocalDate(raw.dateFrom) : undefined;
+    const to = raw.dateTo ? formatLocalDate(raw.dateTo) : undefined;
 
     this.service.getReport(from, to).subscribe({
       next: r => {

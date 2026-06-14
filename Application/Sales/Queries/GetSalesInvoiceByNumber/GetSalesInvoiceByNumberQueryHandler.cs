@@ -23,6 +23,22 @@ public sealed class GetSalesInvoiceByNumberQueryHandler(IApplicationDbContext co
         if (invoice is null)
             return null;
 
+        var detailsIds = invoice.Items
+            .Where(x => !x.IsDeleted)
+            .Select(x => x.ProductDetailsId)
+            .Distinct()
+            .ToList();
+
+        var stockByDetails = await context.ProductDetails
+            .AsNoTracking()
+            .Where(pd => detailsIds.Contains(pd.Id))
+            .ToDictionaryAsync(pd => pd.Id, pd => pd.RemainingQuantity, cancellationToken);
+
+        var purchasePrices = await context.ProductDetails
+            .AsNoTracking()
+            .Where(pd => detailsIds.Contains(pd.Id))
+            .ToDictionaryAsync(pd => pd.Id, pd => pd.Price, cancellationToken);
+
         string? customerName = null;
         string? customerPhone = null;
         if (invoice.CustomerId.HasValue)
@@ -34,6 +50,6 @@ public sealed class GetSalesInvoiceByNumberQueryHandler(IApplicationDbContext co
             customerPhone = customer?.Phone;
         }
 
-        return GetSalesInvoiceQueryHandler.Map(invoice, customerName, customerPhone);
+        return GetSalesInvoiceQueryHandler.Map(invoice, customerName, customerPhone, stockByDetails, purchasePrices);
     }
 }

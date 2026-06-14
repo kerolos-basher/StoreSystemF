@@ -1,5 +1,6 @@
 using Application.Abstractions.Persistence;
 using Application.Returns.Dtos;
+using Domain.DeferredPaymentAggregate;
 using Domain.InventoryAggregate;
 using Domain.ReturnsAggregate;
 
@@ -17,7 +18,7 @@ public sealed class CreateReturnCommandHandler(
         var invoice = await context.SalesInvoice
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == request.SalesInvoiceId, cancellationToken)
-            ?? throw new Exception("الفاتورة غير موجودة.");
+            ?? throw new StoreException("الفاتورة غير موجودة.");
 
         var returnInvoiceId = await sequenceService.GetNextValueAsync(SequenceKeys.ReturnInvoiceSequence, cancellationToken);
         var returnInvoice = ReturnInvoice.Create(
@@ -28,16 +29,19 @@ public sealed class CreateReturnCommandHandler(
 
         foreach (var line in request.Items)
         {
-            var invoiceItem = invoice.Items.FirstOrDefault(x => x.Id == line.SalesInvoiceItemId)
-                ?? throw new Exception("بند الفاتورة غير موجود.");
+            var invoiceItem = invoice.Items.FirstOrDefault(x => x.Id == line.SalesInvoiceItemId && !x.IsDeleted)
+                ?? throw new StoreException("بند الفاتورة غير موجود.");
 
             if (line.Quantity > invoiceItem.AvailableForReturn)
-                throw new Exception($"الكمية المرتجعة تتجاوز المتاح للصنف {invoiceItem.ProductName}.");
+                throw new StoreException($"الكمية المرتجعة تتجاوز المتاح للصنف {invoiceItem.ProductName}.");
+
+            if (line.UnitPrice <= 0)
+                throw new StoreException("سعر المرتجع يجب أن يكون أكبر من صفر.");
 
             var reason = await context.ReturnReason
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.Id == line.ItemReasonType, cancellationToken)
-                ?? throw new Exception("سبب المرتجع غير موجود.");
+                ?? throw new StoreException("سبب المرتجع غير موجود.");
 
             invoiceItem.RegisterReturn(line.Quantity);
 
@@ -48,14 +52,24 @@ public sealed class CreateReturnCommandHandler(
                 invoiceItem.ProductId,
                 invoiceItem.ProductDetailsId,
                 line.Quantity,
-                invoiceItem.UnitPrice,
+                line.UnitPrice,
                 line.ItemReasonType,
                 reason.IsReturnToStock,
                 line.Notes ?? string.Empty);
         }
 
+        invoice.RecalculateAfterReturn();
+
         returnInvoice.FinalizeReturn();
         context.ReturnInvoice.Add(returnInvoice);
+
+        if (invoice.IsDeferredPayment)
+        {
+            var deferredPayment = await context.DeferredPayment
+                .FirstOrDefaultAsync(d => d.SalesInvoiceId == invoice.Id && !d.IsDeleted, cancellationToken);
+
+            deferredPayment?.AdjustTotalForReturn(returnInvoice.TotalAmount);
+        }
 
         foreach (var item in returnInvoice.Items)
         {
@@ -66,7 +80,7 @@ public sealed class CreateReturnCommandHandler(
                 var product = await context.Product
                     .Include(p => p.ProductDetails)
                     .FirstOrDefaultAsync(p => p.Id == item.ProductId, cancellationToken)
-                    ?? throw new Exception("المنتج غير موجود.");
+                    ?? throw new StoreException("المنتج غير موجود.");
 
                 product.RestoreStock(item.ProductDetailsId, item.Quantity);
 

@@ -11,5 +11,5 @@ export function formatProductAutocompleteOption(
 ): string {
   const label = `${item.productName} — ${item.supplierName}`;
   if (!includePrice) return label;
-  return `${label} (${item.suggestedSellingPrice.toFixed(2)} ج.م)`;
+  return `${label} (شراء: ${item.purchasePrice.toFixed(2)} — بيع: ${item.suggestedSellingPrice.toFixed(2)} ج.م)`;
 }

@@ -27,6 +27,11 @@ public sealed class GetSalesInvoiceQueryHandler(IApplicationDbContext context)
             .Where(pd => detailsIds.Contains(pd.Id))
             .ToDictionaryAsync(pd => pd.Id, pd => pd.RemainingQuantity, cancellationToken);
 
+        var purchasePrices = await context.ProductDetails
+            .AsNoTracking()
+            .Where(pd => detailsIds.Contains(pd.Id))
+            .ToDictionaryAsync(pd => pd.Id, pd => pd.Price, cancellationToken);
+
         string? customerName = null;
         string? customerPhone = null;
         if (invoice.CustomerId.HasValue)
@@ -38,14 +43,15 @@ public sealed class GetSalesInvoiceQueryHandler(IApplicationDbContext context)
             customerPhone = customer?.Phone;
         }
 
-        return Map(invoice, customerName, customerPhone, stockByDetails);
+        return Map(invoice, customerName, customerPhone, stockByDetails, purchasePrices);
     }
 
     internal static SalesInvoiceDto Map(
         Domain.SalesAggregate.SalesInvoice invoice,
         string? customerName,
         string? customerPhone,
-        IReadOnlyDictionary<long, int>? stockByDetails = null) =>
+        IReadOnlyDictionary<long, int>? stockByDetails = null,
+        IReadOnlyDictionary<long, decimal>? purchasePrices = null) =>
         new(
             invoice.Id,
             invoice.InvoiceNumber,
@@ -66,6 +72,7 @@ public sealed class GetSalesInvoiceQueryHandler(IApplicationDbContext context)
                 x.ReturnedQuantity,
                 x.AvailableForReturn,
                 stockByDetails?.GetValueOrDefault(x.ProductDetailsId, 0) ?? 0,
+                purchasePrices?.GetValueOrDefault(x.ProductDetailsId, 0) ?? 0,
                 x.UnitPrice,
                 x.LineTotal,
                 x.Notes)).ToList());

@@ -130,6 +130,7 @@ export interface SalesInvoiceItem {
   returnedQuantity?: number;
   availableForReturn?: number;
   stockAvailable?: number;
+  purchasePrice?: number;
   unitPrice: number;
   lineTotal: number;
   notes: string;
@@ -179,6 +180,7 @@ export interface CartItem {
 export interface ReturnLineRequest {
   salesInvoiceItemId: number;
   quantity: number;
+  unitPrice: number;
   itemReasonType: number;
   notes: string;
 }

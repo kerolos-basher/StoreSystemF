@@ -52,6 +52,23 @@ public sealed class SearchSalesInvoicesQueryHandler(IApplicationDbContext contex
             query = query.Where(x => x.CustomerId.HasValue && customerIds.Contains(x.CustomerId.Value));
         }
 
+        if (!string.IsNullOrWhiteSpace(request.ProductName))
+        {
+            var productTerm = request.ProductName.Trim().ToLower();
+            var matchingProductIds = await context.Product
+                .AsNoTracking()
+                .Where(p => !p.IsDeleted && p.ProductName.ToLower().Contains(productTerm))
+                .Select(p => p.Id)
+                .ToListAsync(cancellationToken);
+
+            query = query.Where(x => x.Items.Any(i =>
+                !i.IsDeleted &&
+                (i.ProductName.ToLower().Contains(productTerm) ||
+                 matchingProductIds.Contains(i.ProductId))));
+        }
+
+        query = query.Where(x => !x.IsDeleted);
+
         var totalCount = await query.CountAsync(cancellationToken);
 
         var invoices = await query
@@ -65,6 +82,17 @@ public sealed class SearchSalesInvoicesQueryHandler(IApplicationDbContext contex
             .AsNoTracking()
             .Where(c => customerIdList.Contains(c.Id))
             .ToDictionaryAsync(c => c.Id, cancellationToken);
+
+        var detailsIds = invoices
+            .SelectMany(x => x.Items.Where(i => !i.IsDeleted))
+            .Select(i => i.ProductDetailsId)
+            .Distinct()
+            .ToList();
+
+        var purchasePrices = await context.ProductDetails
+            .AsNoTracking()
+            .Where(pd => detailsIds.Contains(pd.Id))
+            .ToDictionaryAsync(pd => pd.Id, pd => pd.Price, cancellationToken);
 
         var items = invoices.Select(x =>
         {
@@ -89,6 +117,7 @@ public sealed class SearchSalesInvoicesQueryHandler(IApplicationDbContext contex
                     i.ReturnedQuantity,
                     i.AvailableForReturn,
                     0,
+                    purchasePrices.GetValueOrDefault(i.ProductDetailsId, 0),
                     i.UnitPrice,
                     i.LineTotal,
                     i.Notes)).ToList());

@@ -80,13 +80,16 @@ export class DeferredPaymentsComponent implements OnInit {
   }
 
   openStatement(payment: DeferredPaymentListItem): void {
-    this.dialog.open(PaymentStatementModalComponent, {
+    const ref = this.dialog.open(PaymentStatementModalComponent, {
       width: '640px',
       maxWidth: '96vw',
       panelClass: 'app-dialog',
       autoFocus: false,
       restoreFocus: true,
       data: { payment }
+    });
+    ref.afterClosed().subscribe(changed => {
+      if (changed) this.search();
     });
   }
 

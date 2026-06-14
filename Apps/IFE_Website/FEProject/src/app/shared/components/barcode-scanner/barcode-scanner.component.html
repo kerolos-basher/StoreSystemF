@@ -1,19 +1,13 @@
 <div class="scanner-wrap">
-  @if (!active()) {
-    <div class="scanner-idle">
-      <p>اضغط لتشغيل الكاميرا ومسح رمز QR</p>
-      <button type="button" class="btn-secondary" (click)="startCamera()" [disabled]="starting()">
-        {{ starting() ? 'جاري التشغيل...' : 'تشغيل الكاميرا' }}
-      </button>
-    </div>
-  } @else {
-    <div class="scanner-live">
-      <div [id]="regionId"></div>
-      <button type="button" class="btn-secondary scanner-stop" (click)="stopCamera()">إيقاف الكاميرا</button>
-    </div>
-  }
-
-  @if (error()) {
-    <p class="scanner-error">{{ error() }}</p>
-  }
+  <p class="scanner-hint">{{ hint() }}</p>
+  <input
+    #scannerInput
+    type="text"
+    class="scanner-input"
+    autocomplete="off"
+    inputmode="numeric"
+    placeholder="امسح الباركود أو أدخله يدوياً..."
+    (keydown)="onKeyDown($event)"
+    (change)="onInput($event)"
+  />
 </div>

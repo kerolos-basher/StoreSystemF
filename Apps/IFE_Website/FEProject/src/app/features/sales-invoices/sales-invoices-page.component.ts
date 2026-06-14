@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { InventoryApiService } from '../../core/services/inventory-api.service';
+import { formatLocalDate } from '../../shared/utils/date-format';
 import { SalesInvoiceListItem } from '../../shared/models/inventory.models';
 
 @Component({
@@ -58,8 +59,8 @@ export class SalesInvoicesPageComponent implements OnInit {
       pageSize: this.pageSize
     };
 
-    if (raw.dateFrom) payload['dateFrom'] = raw.dateFrom.toISOString();
-    if (raw.dateTo) payload['dateTo'] = raw.dateTo.toISOString();
+    if (raw.dateFrom) payload['dateFrom'] = formatLocalDate(raw.dateFrom);
+    if (raw.dateTo) payload['dateTo'] = formatLocalDate(raw.dateTo);
     if (raw.invoiceNumber?.trim()) payload['invoiceNumber'] = raw.invoiceNumber.trim();
 
     this.api.searchSalesInvoices(payload).subscribe({

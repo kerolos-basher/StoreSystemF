@@ -1,7 +1,12 @@
-import { Component, EventEmitter, OnDestroy, Output, signal } from '@angular/core';
-import { Html5Qrcode } from 'html5-qrcode';
-
-let scannerInstanceId = 0;
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Output,
+  ViewChild,
+  signal
+} from '@angular/core';
 
 @Component({
   selector: 'app-barcode-scanner',
@@ -9,55 +14,58 @@ let scannerInstanceId = 0;
   templateUrl: './barcode-scanner.component.html',
   styleUrl: './barcode-scanner.component.scss'
 })
-export class BarcodeScannerComponent implements OnDestroy {
+export class BarcodeScannerComponent implements AfterViewInit {
   @Output() scanned = new EventEmitter<string>();
+  @ViewChild('scannerInput') scannerInput?: ElementRef<HTMLInputElement>;
 
-  readonly error = signal('');
-  readonly active = signal(false);
-  readonly starting = signal(false);
+  readonly hint = signal('جاهز للمسح — وجّه الماسح الضوئي نحو الحقل');
 
-  readonly regionId = `barcode-scanner-region-${++scannerInstanceId}`;
+  private scanBuffer = '';
+  private lastKeyTime = 0;
+  private readonly scanGapMs = 80;
 
-  private scanner?: Html5Qrcode;
-  private started = false;
+  ngAfterViewInit(): void {
+    this.focusInput();
+  }
 
-  async startCamera(): Promise<void> {
-    if (this.starting() || this.active()) return;
+  focusInput(): void {
+    setTimeout(() => this.scannerInput?.nativeElement.focus(), 0);
+  }
 
-    this.starting.set(true);
-    this.error.set('');
-    this.active.set(true);
+  onInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value.trim();
+    if (!value) return;
+    this.emitScan(value);
+  }
 
-    await new Promise<void>(resolve => setTimeout(resolve, 0));
+  onKeyDown(event: KeyboardEvent): void {
+    const now = Date.now();
 
-    try {
-      this.scanner = new Html5Qrcode(this.regionId);
-      await this.scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        decoded => this.scanned.emit(decoded),
-        () => undefined
-      );
-      this.started = true;
-    } catch {
-      this.error.set('تعذر فتح الكاميرا. تأكد من منح الإذن.');
-      this.active.set(false);
-    } finally {
-      this.starting.set(false);
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const inputValue = this.scannerInput?.nativeElement.value.trim() ?? '';
+      const code = inputValue || this.scanBuffer.trim();
+      if (code) {
+        this.emitScan(code);
+      }
+      return;
+    }
+
+    if (event.key.length === 1) {
+      if (now - this.lastKeyTime > this.scanGapMs) {
+        this.scanBuffer = '';
+      }
+      this.scanBuffer += event.key;
+      this.lastKeyTime = now;
     }
   }
 
-  async stopCamera(): Promise<void> {
-    if (this.scanner && this.started) {
-      await this.scanner.stop().catch(() => undefined);
-      this.scanner.clear();
-      this.scanner = undefined;
-      this.started = false;
+  private emitScan(code: string): void {
+    this.scanned.emit(code);
+    this.scanBuffer = '';
+    if (this.scannerInput) {
+      this.scannerInput.nativeElement.value = '';
+      this.focusInput();
     }
-    this.active.set(false);
-  }
-
-  async ngOnDestroy(): Promise<void> {
-    await this.stopCamera();
   }
 }

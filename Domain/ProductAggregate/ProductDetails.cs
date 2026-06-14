@@ -51,7 +51,7 @@ public class ProductDetails : ParentEntity
         Quantity = quantity;
         RemainingQuantity = quantity;
         Notes = notes ?? string.Empty;
-        CreatedAt = purchaseDate ?? DateTime.UtcNow;
+        CreatedAt = purchaseDate ?? DateTime.Now;
     }
 
     internal static ProductDetails Create(

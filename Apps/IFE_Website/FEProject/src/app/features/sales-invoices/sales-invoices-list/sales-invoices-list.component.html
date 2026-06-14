@@ -108,7 +108,8 @@
                         <tr>
                           <th>الصنف</th>
                           <th>الكمية</th>
-                          <th>السعر</th>
+                          <th>سعر الشراء</th>
+                          <th>سعر البيع</th>
                           <th>الإجمالي</th>
                           <th>ملاحظات</th>
                         </tr>
@@ -118,6 +119,7 @@
                           <tr>
                             <td>{{ line.productName }}</td>
                             <td>{{ line.quantity }}</td>
+                            <td class="money-value">{{ line.purchasePrice | number:'1.2-2' }} ج.م</td>
                             <td class="money-value">{{ line.unitPrice | number:'1.2-2' }} ج.م</td>
                             <td class="amount money-value">{{ line.lineTotal | number:'1.2-2' }} ج.م</td>
                             <td class="muted">{{ line.notes || '—' }}</td>

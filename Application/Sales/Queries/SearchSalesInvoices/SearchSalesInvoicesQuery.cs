@@ -8,6 +8,7 @@ public sealed record SearchSalesInvoicesQuery(
     DateTime? DateTo,
     string InvoiceNumber,
     string? CustomerTerm,
+    string? ProductName,
     bool? IsDeferredPayment,
     int PageNumber,
     int PageSize) : IQuery<PagedResponse<SalesInvoiceListItemDto>>;

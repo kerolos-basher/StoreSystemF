@@ -2,8 +2,10 @@ import { AsyncPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged, filter, Observable, switchMap } from 'rxjs';
 import {
@@ -11,8 +13,11 @@ import {
   ReturnInvoiceListItem,
   SalesInvoiceListItem
 } from '../../shared/models/inventory.models';
+import { formatLocalDate } from '../../shared/utils/date-format';
 import { ReturnLineDraft, SelectedInvoice } from './returns.interfaces';
 import { ReturnsService } from './returns.service';
+
+type ReturnStep = 'search' | 'select' | 'create';
 
 @Component({
   selector: 'app-returns',
@@ -25,6 +30,8 @@ import { ReturnsService } from './returns.service';
     MatFormFieldModule,
     MatInputModule,
     MatAutocompleteModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     MatSnackBarModule,
     DatePipe,
     DecimalPipe
@@ -39,10 +46,12 @@ export class ReturnsComponent implements OnInit {
 
   readonly saving = signal(false);
   readonly loadingHistory = signal(false);
+  readonly searchingInvoices = signal(false);
   readonly returnReasons = signal<{ id: number; name: string; isReturnToStock: boolean }[]>([]);
-  readonly selectedInvoices = signal<SelectedInvoice[]>([]);
-  readonly customerInvoices = signal<SalesInvoiceListItem[]>([]);
+  readonly searchResults = signal<SalesInvoiceListItem[]>([]);
   readonly returnsHistory = signal<ReturnInvoiceListItem[]>([]);
+  readonly currentStep = signal<ReturnStep>('search');
+  readonly activeInvoice = signal<SelectedInvoice | null>(null);
 
   filteredCustomers$!: Observable<CustomerAutoComplete[]>;
   returnReasonType = 4;
@@ -50,7 +59,9 @@ export class ReturnsComponent implements OnInit {
 
   readonly searchForm = this.fb.group({
     invoiceNumber: [''],
-    customerName: ['']
+    customerName: [''],
+    productName: [''],
+    saleDate: [null as Date | null]
   });
 
   ngOnInit(): void {
@@ -65,45 +76,118 @@ export class ReturnsComponent implements OnInit {
     );
   }
 
-  loadByInvoiceNumber(): void {
-    const term = (this.searchForm.controls.invoiceNumber.value ?? '').trim();
-    if (!term) return;
+  searchInvoices(): void {
+    const raw = this.searchForm.getRawValue();
+    const invoiceNumber = (raw.invoiceNumber ?? '').trim();
 
-    this.service.getInvoiceByNumber(term).subscribe({
-      next: invoice => this.addInvoice(invoice.id, invoice.invoiceNumber, invoice.items),
-      error: () => this.snackBar.open('الفاتورة غير موجودة', 'إغلاق', { duration: 2500 })
+    if (invoiceNumber) {
+      this.searchingInvoices.set(true);
+      this.service.getInvoiceByNumber(invoiceNumber).subscribe({
+        next: invoice => {
+          this.searchResults.set([{
+            id: String(invoice.id),
+            invoiceNumber: invoice.invoiceNumber,
+            saleDate: invoice.saleDate,
+            customerId: invoice.customerId,
+            customerName: invoice.customerName,
+            customerPhone: invoice.customerPhone,
+            subtotal: invoice.subtotal,
+            grandTotal: invoice.grandTotal,
+            isDeferredPayment: invoice.isDeferredPayment,
+            itemCount: invoice.items.length,
+            items: invoice.items
+          }]);
+          this.searchingInvoices.set(false);
+          this.currentStep.set('select');
+        },
+        error: () => {
+          this.searchingInvoices.set(false);
+          this.snackBar.open('الفاتورة غير موجودة', 'إغلاق', { duration: 2500 });
+        }
+      });
+      return;
+    }
+
+    const productName = (raw.productName ?? '').trim();
+    const saleDate = raw.saleDate;
+    const customerName = typeof raw.customerName === 'string' ? raw.customerName.trim() : '';
+
+    if (!productName && !saleDate && !customerName) {
+      this.snackBar.open('أدخل رقم الفاتورة أو اسم المنتج أو التاريخ أو العميل', 'إغلاق', { duration: 2500 });
+      return;
+    }
+
+    const query: Record<string, string | number | boolean> = {
+      pageNumber: 1,
+      pageSize: 50
+    };
+    if (productName) query['productName'] = productName;
+    if (customerName) query['customerTerm'] = customerName;
+    if (saleDate) {
+      const from = formatLocalDate(saleDate);
+      query['dateFrom'] = from;
+      query['dateTo'] = from;
+    }
+
+    this.searchingInvoices.set(true);
+    this.service.searchInvoices(query).subscribe({
+      next: result => {
+        this.searchResults.set(result.items);
+        this.searchingInvoices.set(false);
+        this.currentStep.set('select');
+        if (result.items.length === 0) {
+          this.snackBar.open('لا توجد فواتير مطابقة', 'إغلاق', { duration: 2500 });
+        }
+      },
+      error: () => {
+        this.searchingInvoices.set(false);
+        this.snackBar.open('فشل البحث', 'إغلاق', { duration: 2500 });
+      }
     });
   }
 
   selectCustomer(customer: CustomerAutoComplete): void {
     this.searchForm.patchValue({ customerName: customer.name });
-    this.service.getCustomerInvoices(customer.id).subscribe({
-      next: invoices => this.customerInvoices.set(invoices),
-      error: () => this.snackBar.open('فشل تحميل فواتير العميل', 'إغلاق', { duration: 2500 })
-    });
+    this.searchInvoices();
   }
 
   displayCustomer(item: CustomerAutoComplete | string): string {
     return typeof item === 'string' ? item : item.name;
   }
 
-  loadCustomerInvoice(inv: SalesInvoiceListItem): void {
+  chooseInvoice(inv: SalesInvoiceListItem): void {
     this.service.getSalesInvoice(Number(inv.id)).subscribe({
-      next: invoice => this.addInvoice(invoice.id, invoice.invoiceNumber, invoice.items),
+      next: invoice => {
+        const selected = this.buildSelectedInvoice(invoice.id, invoice.invoiceNumber, invoice.items);
+        if (!selected) return;
+        this.activeInvoice.set(selected);
+        this.currentStep.set('create');
+      },
       error: () => this.snackBar.open('فشل تحميل الفاتورة', 'إغلاق', { duration: 2500 })
     });
   }
 
-  removeInvoice(invoiceId: number): void {
-    this.selectedInvoices.update(list => list.filter(x => x.id !== invoiceId));
+  backToSearch(): void {
+    this.currentStep.set('search');
+    this.activeInvoice.set(null);
+    this.searchResults.set([]);
   }
 
-  submitReturn(invoice: SelectedInvoice): void {
+  backToSelect(): void {
+    this.currentStep.set('select');
+    this.activeInvoice.set(null);
+  }
+
+  submitReturn(): void {
+    const invoice = this.activeInvoice();
+    if (!invoice) return;
+
     const items = invoice.lines
       .filter(x => x.quantity > 0)
       .map(x => ({
         salesInvoiceItemId: x.salesInvoiceItemId,
         quantity: x.quantity,
+        unitPrice: x.unitPrice,
         itemReasonType: x.itemReasonType,
         notes: x.notes
       }));
@@ -123,7 +207,11 @@ export class ReturnsComponent implements OnInit {
       next: result => {
         this.saving.set(false);
         this.snackBar.open(`تم تسجيل المرتجع ${result.returnNumber}`, 'إغلاق', { duration: 4000 });
-        this.removeInvoice(invoice.id);
+        this.notes = '';
+        this.activeInvoice.set(null);
+        this.searchResults.set([]);
+        this.searchForm.reset({ invoiceNumber: '', customerName: '', productName: '', saleDate: null });
+        this.currentStep.set('search');
         this.loadHistory();
       },
       error: err => {
@@ -144,32 +232,29 @@ export class ReturnsComponent implements OnInit {
     });
   }
 
-  private addInvoice(
+  private buildSelectedInvoice(
     id: number,
     invoiceNumber: string,
-    items: { id?: number; productName: string; quantity: number; returnedQuantity?: number; availableForReturn?: number }[]
-  ): void {
-    if (this.selectedInvoices().some(x => x.id === id)) {
-      this.snackBar.open('الفاتورة مضافة بالفعل', 'إغلاق', { duration: 2000 });
-      return;
-    }
-
+    items: { id?: number; productName: string; quantity: number; returnedQuantity?: number; availableForReturn?: number; unitPrice: number }[]
+  ): SelectedInvoice | null {
     const lines: ReturnLineDraft[] = items
       .filter(x => (x.availableForReturn ?? (x.quantity - (x.returnedQuantity ?? 0))) > 0)
       .map(x => ({
         salesInvoiceItemId: x.id!,
         productName: x.productName,
         availableForReturn: x.availableForReturn ?? (x.quantity - (x.returnedQuantity ?? 0)),
+        soldUnitPrice: x.unitPrice,
+        unitPrice: x.unitPrice,
         quantity: 0,
         itemReasonType: this.returnReasonType,
         notes: ''
       }));
 
     if (lines.length === 0) {
-      this.snackBar.open('لا توجد أصناف متاحة للإرجاع', 'إغلاق', { duration: 2500 });
-      return;
+      this.snackBar.open('لا توجد أصناف متاحة للإرجاع في هذه الفاتورة', 'إغلاق', { duration: 2500 });
+      return null;
     }
 
-    this.selectedInvoices.update(list => [...list, { id, invoiceNumber, lines }]);
+    return { id, invoiceNumber, lines };
   }
 }
